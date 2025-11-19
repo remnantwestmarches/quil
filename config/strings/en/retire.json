@@ -15,11 +15,7 @@
         "🪶 The page stays open. Retirement not processed."
     ],
     "confirmLabel": [
-        "🪶 Sealing the deed, eh? Type RETIRE to confirm.",
-        "🪶 Ready to close the book? Type RETIRE to proceed.",
-        "🪶 Final step: Type RETIRE to archive this adventurer.",
-        "🪶 Almost done. Type RETIRE to finalize the retirement.",
-        "🪶 Last chance. Type RETIRE to confirm the retirement."
+        "🪶 Type RETIRE to confirm."
     ],
     "title": [
       "Closing the Ledger: {name}",

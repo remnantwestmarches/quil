@@ -8,6 +8,7 @@ import {
   ActionRowBuilder,
   ModalSubmitInteraction,
   MessageFlags,
+  TextDisplayBuilder,
 } from 'discord.js';
 import { getDb } from '../db/index.js';
 
@@ -21,11 +22,13 @@ export const data = new SlashCommandBuilder()
     o.setName('user')
      .setDescription('Target user to retire (Mod+ only).')
      .setRequired(false))
+  .addStringOption(o => o.setName('character').setDescription('character to retire').setRequired(false))
   .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages)
 
 // We’ll register an event listener in execute() for the modal submit.
 export async function execute(interaction: ChatInputCommandInteraction) {
   const targetUser = interaction.options.getUser('user');
+  const char = interaction.options.getString('character');
   const isSelf = !targetUser || targetUser.id === interaction.user.id;
 
   // Permission check for mod actions
@@ -45,7 +48,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   // Build modal
   const modal = new ModalBuilder()
     .setCustomId(`retire-confirm-${targetUser?.id ?? interaction.user.id}`)
-    .setTitle('Confirm Retirement');
+    .setTitle(`Confirm Retirement`);
+
+  const charInput = new TextInputBuilder()
+    .setCustomId('char_name')
+    .setLabel('Character Name (leave blank for active char)')
+    .setValue(char ?? '')
+    .setStyle(TextInputStyle.Short)
+    .setRequired(false);
 
   const confirmInput = new TextInputBuilder()
     .setCustomId('confirm_text')
@@ -54,8 +64,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     .setRequired(true)
     .setStyle(TextInputStyle.Short);
 
-  const row = new ActionRowBuilder<TextInputBuilder>().addComponents(confirmInput);
-  modal.addComponents(row);
+  const row1 = new ActionRowBuilder<TextInputBuilder>().addComponents(charInput);
+  const row2 = new ActionRowBuilder<TextInputBuilder>().addComponents(confirmInput);
+  modal.addComponents(row1,row2);
 
   await interaction.showModal(modal);
 }
@@ -63,7 +74,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 // --- Modal Handler ---
 export async function handleModal(interaction: ModalSubmitInteraction) {
   if (!interaction.customId.startsWith('retire-confirm-')) return;
-
+  const char = interaction.fields.getTextInputValue('char_name');
   const input = interaction.fields.getTextInputValue('confirm_text');
   if (input !== 'RETIRE') {
     return interaction.reply({ content: t('retire.cancelled'), flags: MessageFlags.Ephemeral });
@@ -78,8 +89,11 @@ export async function handleModal(interaction: ModalSubmitInteraction) {
   const hasCharlog = tables.some(t => t.name === 'charlog');
 
   let row = null;
+  let query = `FROM charlog WHERE userId = ${targetId}`
+  if (char) { query += ` AND name = '${char}'` }
+  else { query += " AND active = true" }
   if (hasAdventurers) row = await db.get(`SELECT * FROM adventurers WHERE user_id = ?`, targetId);
-  else if (hasCharlog) row = await db.get(`SELECT * FROM charlog WHERE userId = ?`, targetId);
+  else if (hasCharlog) row = await db.get(`SELECT * ${query}`);
 
   if (!row) {
     return interaction.reply({
@@ -89,17 +103,38 @@ export async function handleModal(interaction: ModalSubmitInteraction) {
   }
 
   if (hasAdventurers) await db.run(`DELETE FROM adventurers WHERE user_id = ?`, targetId);
-  else if (hasCharlog) await db.run(`DELETE FROM charlog WHERE userId = ?`, targetId);
+  else if (hasCharlog) await db.run(`DELETE ${query}`);
 
+  let lastChar = false
+  const activeCharLeft = await db.get(`SELECT * FROM charlog WHERE userId = ? AND active = 1`, targetId);
+  if (!activeCharLeft) {
+    const anyCharLeft = await db.get(`SELECT * FROM charlog WHERE userId = ?`, targetId);
+    if (anyCharLeft) {
+      await db.run(`UPDATE charlog
+                    SET active = 1
+                    WHERE rowid = (
+                        SELECT rowid
+                        FROM charlog
+                        WHERE userId = ?
+                        ORDER BY rowid ASC
+                        LIMIT 1
+                    );`, targetId)
+    }
+    else {
+      lastChar = true
+    }
+  }
   // Optional role cleanup
-  const guild = interaction.guild;
-  if (guild) {
-    const member = await guild.members.fetch(targetId).catch(() => null);
-    if (member) {
-      const gmRole = guild.roles.cache.find(r => r.name === 'Guild Member');
-      const uninit = guild.roles.cache.find(r => r.name === 'uninitiated');
-      if (gmRole && member.roles.cache.has(gmRole.id)) await member.roles.remove(gmRole).catch(() => {});
-      if (uninit && !member.roles.cache.has(uninit.id)) await member.roles.add(uninit).catch(() => {});
+  if (lastChar) {
+    const guild = interaction.guild;
+    if (guild) {
+      const member = await guild.members.fetch(targetId).catch(() => null);
+      if (member) {
+        const gmRole = guild.roles.cache.find(r => r.name === 'Guild Member');
+        const uninit = guild.roles.cache.find(r => r.name === 'uninitiated');
+        if (gmRole && member.roles.cache.has(gmRole.id)) await member.roles.remove(gmRole).catch(() => {});
+        if (uninit && !member.roles.cache.has(uninit.id)) await member.roles.add(uninit).catch(() => {});
+      }
     }
   }
 

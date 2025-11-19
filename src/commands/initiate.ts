@@ -31,21 +31,32 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  // prevent duplicate active record
-  const exists = await db.get(`SELECT 1 FROM charlog WHERE userId = ?`, targetUser.id);
-  if (exists) {
+  const duplicate = await db.get(
+    `SELECT name FROM charlog WHERE userId = ? AND name = ?`,
+    targetUser.id,
+    rawName
+  );
+
+  if (duplicate){
     await interaction.reply({ ephemeral: true, content:
       targetUser.id === interaction.user.id
-        ? 'You already have an active adventurer. Retire before initiating a new one.'
-        : 'That user already has an active adventurer. Retire before initiating a new one.' });
+        ? 'You already have an adventurer of that name. Retire before initiating a new one.'
+        : 'That user already has an adventurer of that name. Retire before initiating a new one.' });
     return;
   }
 
+  await db.get(
+    `UPDATE charlog SET active = 0 WHERE userId = ? AND name != ?`,
+    targetUser.id,
+    rawName
+  );
+  
   // --- create baseline record (Level 3 / 900 XP / 80 GP / 0 TP) ---
   await db.run(
-    `INSERT INTO charlog (userId, name, level, xp, cp, tp)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [targetUser.id, rawName, 3, 900, 8000, 0]
+    `INSERT INTO charlog (userId, name, level, xp, cp, tp, active)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(userId,name) DO NOTHING`,
+    [targetUser.id, rawName, 3, 900, 8000, 0, true]
   );
 
   // reply (no role changes, no fund debit)

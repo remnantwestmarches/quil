@@ -6,17 +6,20 @@ import { t } from "../lib/i18n.js";
 export const data = new SlashCommandBuilder()
   .setName("charinfo")
   .setDescription("Show your character info (or mention a user)")
-  .addUserOption((o) => o.setName("user").setDescription("Target user"));
+  .addUserOption((o) => o.setName("user").setDescription("Target user"))
+  .addStringOption((o) => o.setName("character").setDescription("Target character"));
 
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   const user = interaction.options.getUser("user") ?? interaction.user;
+  const char = interaction.options.getString("character") ?? null;
   const caller = interaction.user;
   const db = getDb();
-  const row = await db.get(
-    "SELECT name, level, xp, tp, cp FROM charlog WHERE userId = ?",
-    user.id
-  );
+  let query = `SELECT name, level, xp, tp, cp FROM charlog WHERE userId = ${user.id}`
+  if (char) { query += ` AND name = '${char}'` }
+  else { query += " AND active = true" }
+  console.log(query)
+  const row = await db.get(query);
   if (!row) {
     await interaction.reply({
       flags: MessageFlags.Ephemeral,

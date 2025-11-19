@@ -22,15 +22,18 @@ export async function initDb(dbFile = DEFAULT_DB) {
     PRAGMA wal_autocheckpoint = 1000;
 
     CREATE TABLE IF NOT EXISTS charlog (
-      userId TEXT PRIMARY KEY,
+      userId TEXT,
       name   TEXT NOT NULL,
       level  INTEGER NOT NULL,
       xp     INTEGER NOT NULL,
       cp     INTEGER NOT NULL,
-      tp     INTEGER NOT NULL
+      tp     INTEGER NOT NULL,
+      active BOOL NOT NULL,
+      PRIMARY KEY (userId, name)
     );
   `);
 
+  
   // LFG presence tracking (table + index) [deprecated]
   // await db.exec(`
   //   CREATE TABLE IF NOT EXISTS lfg_presence (
@@ -76,9 +79,9 @@ export async function initDb(dbFile = DEFAULT_DB) {
   
   // create the fund row if missing
   await db.run(
-    `INSERT INTO charlog (userId, name, level, xp, cp, tp)
-     VALUES (?, 'Adventurers Guild Fund', 20, 305000, 500000, 0)
-     ON CONFLICT(userId) DO NOTHING`,
+    `INSERT INTO charlog (userId, name, level, xp, cp, tp, active)
+     VALUES (?, 'Adventurers Guild Fund', 20, 305000, 500000, 0, true)
+     ON CONFLICT(userId,name) DO NOTHING`,
     FUND_ID
   );
 
