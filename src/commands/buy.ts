@@ -15,6 +15,7 @@ type PlayerRow = {
   xp: number;
   cp: number; // stored in copper
   tp: number; // Displayed as GT
+  active: boolean
 };
 
 const CFG = CONFIG.guild!.config;
@@ -26,12 +27,12 @@ const toGp = (cp: number) => (cp / 100).toFixed(2);
 
 async function getPlayer(userId: string) {
   const db = await getDb();
-  return db.get<PlayerRow>("SELECT * FROM charlog WHERE userId = ?", [userId]);
+  return db.get<PlayerRow>("SELECT * FROM charlog WHERE userId = ? AND active = 1", [userId]);
 }
 
 async function subCp(userId: string, deltaCp: number) {
   const db = await getDb();
-  await db.run("UPDATE charlog SET cp = cp - ? WHERE userId = ?", [
+  await db.run("UPDATE charlog SET cp = cp - ? WHERE userId = ? AND active = 1", [
     deltaCp,
     userId,
   ]);
@@ -39,7 +40,7 @@ async function subCp(userId: string, deltaCp: number) {
 
 async function subTp(userId: string, deltaTp: number) {
   const db = await getDb();
-  await db.run("UPDATE charlog SET tp = tp - ? WHERE userId = ?", [
+  await db.run("UPDATE charlog SET tp = tp - ? WHERE userId = ? AND active = 1", [
     deltaTp, 
     userId
   ]);

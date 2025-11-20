@@ -23,7 +23,7 @@ type PlayerRow = { userId: string; name: string; xp: number; level: number };
 async function getPlayerByUserId(userId: string): Promise<PlayerRow | null> {
   const db = await getDb();
     const row = await db.get<PlayerRow>(
-    `SELECT userId, name, xp, level FROM charlog WHERE userId = ?`,
+    `SELECT userId, name, xp, level FROM charlog WHERE userId = ? AND active = 1`,
     userId
     );
     return row ?? null;
@@ -31,10 +31,10 @@ async function getPlayerByUserId(userId: string): Promise<PlayerRow | null> {
 
 async function updatePlayerXPLevel(userId: string, xp: number, level: number, displayName?: string) {
   const db = await getDb();
-  const res = await db.run(`UPDATE charlog SET xp = ?, level = ? WHERE userId = ?`, [xp, level, userId]);
+  const res = await db.run(`UPDATE charlog SET xp = ?, level = ? WHERE userId = ? AND active = 1`, [xp, level, userId]);
   if (res.changes === 0) {
     await db.run(
-      `INSERT INTO charlog (userId, name, level, xp, cp, tp) VALUES (?, ?, ?, ?, 0, 0)`,
+      `INSERT INTO charlog (userId, name, level, xp, cp, tp, active) VALUES (?, ?, ?, ?, 0, 0, 0)`,
       [userId, displayName ?? `<@${userId}>`, level, xp]
     );
     console.log(`Updated XP/level for ${userId}: ${xp} XP, level ${level}`);

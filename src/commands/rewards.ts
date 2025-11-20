@@ -31,12 +31,13 @@ type PlayerRow = {
   level: number;
   cp: number; // stored copper
   tp: number; // stored GT/TP
+  active: boolean;
 };
 
 async function getPlayer(userId: string): Promise<PlayerRow | null> {
   const db = await getDb();
   const row = await db.get<PlayerRow>(
-    `SELECT userId, name, xp, level, cp, tp FROM charlog WHERE userId = ?`,
+    `SELECT userId, name, xp, level, cp, tp FROM charlog WHERE userId = ? AND active = 1`,
     userId
   );
   return row ?? null;
@@ -44,17 +45,17 @@ async function getPlayer(userId: string): Promise<PlayerRow | null> {
 
 async function saveSnapshot(userId: string, snap: { xp: number; level: number; cp: number; tp: number; name?: string }) {
   const db = await getDb();
-  const exists = await db.get<{ userId: string }>(`SELECT userId FROM charlog WHERE userId = ?`, userId);
+  const exists = await db.get<{ userId: string }>(`SELECT userId FROM charlog WHERE userId = ? AND active = 1`, userId);
   const name = snap.name ?? userMention(userId);
   if (exists) {
     await db.run(
-      `UPDATE charlog SET xp = ?, level = ?, cp = ?, tp = ?, name = ? WHERE userId = ?`,
+      `UPDATE charlog SET xp = ?, level = ?, cp = ?, tp = ?, name = ? WHERE userId = ? AND active = 1`,
       [snap.xp, snap.level, snap.cp, snap.tp, name, userId]
     );
   } else {
     await db.run(
-      `INSERT INTO charlog (userId, name, level, xp, cp, tp) VALUES (?, ?, ?, ?, ?, ?)`,
-      [userId, name, snap.level, snap.xp, snap.cp, snap.tp]
+      `INSERT INTO charlog (userId, name, level, xp, cp, tp, active) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [userId, name, snap.level, snap.xp, snap.cp, snap.tp, false]
     );
   }
 }

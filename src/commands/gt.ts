@@ -13,12 +13,12 @@ import { validateCommandPermissions } from "../config/validaters.js";
 import { t } from "../lib/i18n.js";
 
 // Note that GT is actually TP (Training Points) in the database. Changed via guild decision.
-type PlayerRow = { userId: string; name: string; xp: number; level: number; cp: number; tp: number };
+type PlayerRow = { userId: string; name: string; xp: number; level: number; cp: number; tp: number; active: boolean };
 
 async function getPlayerByUserId(userId: string): Promise<PlayerRow | null>  {
   const db = await getDb();
   const row = await db.get<PlayerRow>(
-    `SELECT userId, name, xp, level, cp, tp FROM charlog WHERE userId = ?`,
+    `SELECT userId, name, xp, level, cp, tp FROM charlog WHERE userId = ? AND active = 1`,
     userId
   );
   return row ?? null;
@@ -28,15 +28,16 @@ async function upsertPlayerTP(userId: string, nextTPUnits: number, displayName?:
   const db = await getDb();
   await db.run(
     `
-    INSERT INTO charlog (userId, name, level, xp, cp, tp)
+    INSERT INTO charlog (userId, name, level, xp, cp, tp, active)
     VALUES (
-      ?, COALESCE((SELECT name FROM charlog WHERE userId = ?), ?),
-      COALESCE((SELECT level FROM charlog WHERE userId = ?), 1),
-      COALESCE((SELECT xp    FROM charlog WHERE userId = ?), 0),
-      COALESCE((SELECT cp    FROM charlog WHERE userId = ?), 0),
-      ?   -- tp
+      ?, COALESCE((SELECT name FROM charlog WHERE userId = ? AND active = 1), ?),
+      COALESCE((SELECT level FROM charlog WHERE userId = ? AND active = 1), 1),
+      COALESCE((SELECT xp    FROM charlog WHERE userId = ? AND active = 1), 0),
+      COALESCE((SELECT cp    FROM charlog WHERE userId = ? AND active = 1), 0),
+      ?,   -- tp
+      COALESCE((SELECT active FROM charlog WHERE userId = ? AND active = 1), 0)
     )
-    ON CONFLICT(userId) DO UPDATE SET
+    ON CONFLICT(userId,name) DO UPDATE SET
       tp   = excluded.tp,
       name = COALESCE(excluded.name, charlog.name)
     `,

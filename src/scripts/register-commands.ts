@@ -60,7 +60,12 @@ async function loadCommandJSONs(): Promise<object[]> {
     const modUrl = pathToFileURL(f).href; // works with tsx
     const mod: CommandModule = await import(modUrl);
     if (!mod.data) continue;
-    jsons.push(mod.data.toJSON());
+    const cmdJSON = mod.data.toJSON();
+    if (IS_DEV){
+      // Modify the name dynamically
+      cmdJSON.name = `dev_${cmdJSON.name}`;
+    }
+    jsons.push(cmdJSON);
   }
   return jsons;
 }

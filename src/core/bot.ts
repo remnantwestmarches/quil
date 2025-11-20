@@ -57,7 +57,12 @@ async function loadCommands() {
         console.warn(`⚠️  Skipping ${full}: no export 'data' with a name`);
         continue;
       }
-      commands.set(mod.data.name, mod);
+      const cmdJSON = mod.data.toJSON();
+      if (isDevelopment){
+        // Modify the name dynamically
+        cmdJSON.name = `dev_${cmdJSON.name}`;
+      }
+      commands.set(cmdJSON.name, mod);
     } catch (err) {
       console.error(`❌ Failed to import ${f}:`, err);
     }

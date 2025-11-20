@@ -20,12 +20,13 @@ type PlayerRow = {
   level: number;
   cp: number;
   tp: number;
+  active: boolean;
 };
 
 async function getPlayerByUserId(userId: string): Promise<PlayerRow | null>  {
   const db = await getDb();
   const row = await db.get<PlayerRow>(
-    `SELECT userId, name, xp, level, cp, tp FROM charlog WHERE userId = ?`,
+    `SELECT userId, name, xp, level, cp, tp FROM charlog WHERE userId = ? AND active = 1`,
     userId
   );
   return row ?? null;
@@ -39,15 +40,16 @@ async function upsertPlayerCP(
   const db = await getDb();
   await db.run(
     `
-    INSERT INTO charlog (userId, name, level, xp, cp, tp)
+    INSERT INTO charlog (userId, name, level, xp, cp, tp, active)
     VALUES (
-      ?, COALESCE((SELECT name FROM charlog WHERE userId = ?), ?),
-      COALESCE((SELECT level FROM charlog WHERE userId = ?), 1),
-      COALESCE((SELECT xp    FROM charlog WHERE userId = ?), 0),
+      ?, COALESCE((SELECT name FROM charlog WHERE userId = ? AND active = 1), ?),
+      COALESCE((SELECT level  FROM charlog WHERE userId = ? AND active = 1), 1),
+      COALESCE((SELECT xp     FROM charlog WHERE userId = ? AND active = 1), 0),
       ?,  -- cp
-      COALESCE((SELECT tp    FROM charlog WHERE userId = ?), 0)
+      COALESCE((SELECT tp     FROM charlog WHERE userId = ? AND active = 1), 0),
+      COALESCE((SELECT active FROM charlog WHERE userId = ? AND active = 1), 0)
     )
-    ON CONFLICT(userId) DO UPDATE SET
+    ON CONFLICT(userId,name) DO UPDATE SET
       cp   = excluded.cp,
       name = COALESCE(excluded.name, charlog.name)
     `,
