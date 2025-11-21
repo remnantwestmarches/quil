@@ -194,7 +194,7 @@ async function handleCustom(ix: ChatInputCommandInteraction) {
   const xpIn = ix.options.getInteger("xp") ?? 0;
   const gpIn = ix.options.getNumber("gp") ?? 0;
   const tpIn = ix.options.getNumber("gt") ?? 0;
-  const tpAuto = ix.options.getBoolean("gt_auto") ?? false;
+  const tpAuto = ix.options.getNumber("gt") ? false : (ix.options.getNumber("gp") || ix.options.getInteger("xp")) ? true : false;
   const reason = ix.options.getString("reason") ?? null;
 
   if (!recipients.length) {
@@ -218,7 +218,12 @@ async function handleCustom(ix: ChatInputCommandInteraction) {
     const level = levelForXP(before.xp);
 
     let tp = 0;
-    tp = Math.round((tpIn ?? 0));
+    if (tpAuto){
+      tp = level < 5 ? 3 : level < 11 ? 4 : level < 17 ? 5 : 6;
+    }
+    else {
+      tp = Math.round((tpIn ?? 0));
+    }
 
     const delta = computeCustomReward({ xp: xpIn, gp: gpIn, tp });
 

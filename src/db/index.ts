@@ -91,6 +91,25 @@ export async function initDb(dbFile = DEFAULT_DB) {
   return db;
 }
 
+export async function migrateDb(dbFile = DEFAULT_DB) {
+  const db = await open({ filename: dbFile, driver: sqlite3.Database });
+
+  // add COLUMN active to charlog
+  const migrate_check1 = await db.get(`SELECT * FROM pragma_table_info('charlog') WHERE name = 'active';`);
+  if (!migrate_check1) {await db.exec(`
+    ALTER TABLE charlog
+    ADD COLUMN active BOOLEAN NOT NULL DEFAULT 1;
+  `);}
+  // add COLUMN dtp to charlog
+  const migrate_check2 = await db.get(`SELECT * FROM pragma_table_info('charlog') WHERE name = 'dtp';`);
+  if (!migrate_check2) {await db.exec(`
+    ALTER TABLE charlog
+    ADD COLUMN dtp INTEGER NOT NULL DEFAULT 0;
+  `);}
+
+  console.log(`📂 Database migrations done: ${dbFile}`);
+  return db;
+}
 
 export function getDb(): Sqlite {
   if (!_db) throw new Error('DB not initialized — call initDb() before using getDb()');

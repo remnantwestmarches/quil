@@ -18,7 +18,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   let query = `SELECT name, level, xp, tp, cp FROM charlog WHERE userId = ${user.id}`
   if (char) { query += ` AND name = '${char}'` }
   else { query += " AND active = true" }
-  console.log(query)
   const row = await db.get(query);
   if (!row) {
     await interaction.reply({

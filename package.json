@@ -22,6 +22,7 @@
     "prestart": "npm run build",
     "start": "node --enable-source-maps dist/src/core/bot.js",
     "db:init": "tsx src/scripts/init.db.ts",
+    "db:migrate": "tsx src/scripts/migrate.db.ts",
     "db:backup": "tsx src/scripts/backup.ts",
     "db:wipe": "tsx src/scripts/wipe.ts",
     "db:seed:me": "tsx src/scripts/seed.me.ts",

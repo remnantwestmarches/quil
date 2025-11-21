@@ -50,8 +50,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     rawName
   );
 
-  console.log(found)
-
   const gp = (found.cp / 100).toFixed(2);
   const tp = (found.tp).toFixed(1);
 
