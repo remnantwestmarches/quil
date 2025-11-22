@@ -32,6 +32,9 @@ cp .env.example .env
 # initialize database (creates data/remnant.sqlite)
 npm run db:init
 
+# migrate database (creates/updates DB with new data for newer features in data/remnant.sqlite)
+npm run db:migrate
+
 # register slash commands to your dev guild (see docs/RUNBOOK.md)
 npm run deploy:dev
 
