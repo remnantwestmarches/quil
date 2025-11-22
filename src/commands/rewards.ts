@@ -1,4 +1,5 @@
 import {
+  User,
   ChatInputCommandInteraction,
   SlashCommandBuilder,
   EmbedBuilder,
@@ -6,10 +7,11 @@ import {
   PermissionFlagsBits,
   userMention,
   MessageFlags,
+  AutocompleteInteraction,
 } from "discord.js";
 
 import { CONFIG } from "../config/resolved.js";
-import { getDb } from "../db/index.js";
+import { adjustResource, getPlayer } from "../utils/db_queries.js";
 
 // Domain logic
 import {
@@ -20,45 +22,8 @@ import {
 import { levelForXP, proficiencyFor } from "../domain/xp.js";
 
 import { t } from "../lib/i18n.js";
+import { characterAutocomplete } from "../utils/autocomplete.js";
 
-/* ──────────────────────────────────────────────────────────────────────────────
-   DB SHAPES
-────────────────────────────────────────────────────────────────────────────── */
-type PlayerRow = {
-  userId: string;
-  name: string;
-  xp: number;
-  level: number;
-  cp: number; // stored copper
-  tp: number; // stored GT/TP
-  active: boolean;
-};
-
-async function getPlayer(userId: string): Promise<PlayerRow | null> {
-  const db = await getDb();
-  const row = await db.get<PlayerRow>(
-    `SELECT userId, name, xp, level, cp, tp FROM charlog WHERE userId = ? AND active = 1`,
-    userId
-  );
-  return row ?? null;
-}
-
-async function saveSnapshot(userId: string, snap: { xp: number; level: number; cp: number; tp: number; name?: string }) {
-  const db = await getDb();
-  const exists = await db.get<{ userId: string }>(`SELECT userId FROM charlog WHERE userId = ? AND active = 1`, userId);
-  const name = snap.name ?? userMention(userId);
-  if (exists) {
-    await db.run(
-      `UPDATE charlog SET xp = ?, level = ?, cp = ?, tp = ?, name = ? WHERE userId = ? AND active = 1`,
-      [snap.xp, snap.level, snap.cp, snap.tp, name, userId]
-    );
-  } else {
-    await db.run(
-      `INSERT INTO charlog (userId, name, level, xp, cp, tp, active) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [userId, name, snap.level, snap.xp, snap.cp, snap.tp, false]
-    );
-  }
-}
 
 /* ──────────────────────────────────────────────────────────────────────────────
    CONFIG / PERMISSIONS
@@ -115,6 +80,16 @@ export const data = new SlashCommandBuilder()
       .addUserOption((o) => o.setName("user8").setDescription("Target #8"))
       .addUserOption((o) => o.setName("user9").setDescription("Target #9"))
       .addUserOption((o) => o.setName("user10").setDescription("Target #10"))
+      .addStringOption((o) => o.setName("char1").setDescription("Character #1").setAutocomplete(true))
+      .addStringOption((o) => o.setName("char2").setDescription("Character #2").setAutocomplete(true))
+      .addStringOption((o) => o.setName("char3").setDescription("Character #3").setAutocomplete(true))
+      .addStringOption((o) => o.setName("char4").setDescription("Character #4").setAutocomplete(true))
+      .addStringOption((o) => o.setName("char5").setDescription("Character #5").setAutocomplete(true))
+      .addStringOption((o) => o.setName("char6").setDescription("Character #6").setAutocomplete(true))
+      .addStringOption((o) => o.setName("char7").setDescription("Character #7").setAutocomplete(true))
+      .addStringOption((o) => o.setName("char8").setDescription("Character #8").setAutocomplete(true))
+      .addStringOption((o) => o.setName("char9").setDescription("Character #9").setAutocomplete(true))
+      .addStringOption((o) => o.setName("char10").setDescription("Character #10").setAutocomplete(true))
       .addIntegerOption((o) => o.setName("xp").setDescription("XP to award (>=0)").setMinValue(0))
       .addNumberOption((o) => o.setName("gp").setDescription("GP to award (>=0)").setMinValue(0))
       .addNumberOption((o) => o.setName("gt").setDescription("GT to award (>=0").setMinValue(0))
@@ -132,6 +107,10 @@ export const data = new SlashCommandBuilder()
 /* ──────────────────────────────────────────────────────────────────────────────
    EXECUTOR
 ────────────────────────────────────────────────────────────────────────────── */
+export async function autocomplete(interaction: AutocompleteInteraction) {
+  await characterAutocomplete(interaction);
+}
+
 export async function execute(ix: ChatInputCommandInteraction) {
   const sub = ix.options.getSubcommand() as "custom" | "dm" | "staff";
   const member = ix.member as GuildMember | null;
@@ -153,12 +132,15 @@ export async function execute(ix: ChatInputCommandInteraction) {
    HANDLERS
 ────────────────────────────────────────────────────────────────────────────── */
 type UserOptionName = `user${number}`;
+type CharacterOptionName = `char${number}`
+type UserCharacterTuple = [User, string | null];
 
-function collectUsers(ix: ChatInputCommandInteraction, max = 10) {
-  const users = [];
+function collectUsers(ix: ChatInputCommandInteraction, max = 10): UserCharacterTuple[] {
+  const users: UserCharacterTuple[] = [];
   for (let i = 1; i <= max; i++) {
     const u = ix.options.getUser(`user${i}` as UserOptionName);
-    if (u) users.push(u);
+    const c = ix.options.getString(`char${i}` as CharacterOptionName);
+    if (u) users.push([u,c]);
   }
   return users;
 }
@@ -166,7 +148,6 @@ function collectUsers(ix: ChatInputCommandInteraction, max = 10) {
 function fmtGp(cp: number) {
   return (cp / 100).toFixed(2);
 }
-
 
 async function announceLevelChange(
   ix: ChatInputCommandInteraction,
@@ -208,8 +189,8 @@ async function handleCustom(ix: ChatInputCommandInteraction) {
 
   const fields: { name: string; value: string; inline?: boolean }[] = [];
 
-  for (const u of recipients) {
-    const before = await getPlayer(u.id);
+  for (const [u, c] of recipients) {
+    const before = await getPlayer(u.id,c ?? "");
     if (!before) {
       await ix.reply({ flags: MessageFlags.Ephemeral, content: t("reward.errors.userNotInSystem", { username: u.username }) });
       return;
@@ -228,7 +209,7 @@ async function handleCustom(ix: ChatInputCommandInteraction) {
     const delta = computeCustomReward({ xp: xpIn, gp: gpIn, tp });
 
     const next = applyResourceDeltas(before, { ...delta, tp });
-    await saveSnapshot(u.id, { xp: next.xp, level: next.level, cp: next.cp, tp: next.tp, name: before.name });
+    adjustResource(u.id, ["cp","tp","xp","level"], [next.cp,next.tp,next.xp,next.level], true)
 
     if (next.levelsChanged !== 0) {
       await announceLevelChange(ix, u.id, before.name, next.level, next.levelsChanged);
@@ -247,7 +228,7 @@ async function handleCustom(ix: ChatInputCommandInteraction) {
     });
   }
 
-  const mentionList = recipients.map((u) => userMention(u.id)).join(" ");
+  const mentionList = recipients.map(([u,c]) => userMention(u.id)).join(" ");
 
   const embed = new EmbedBuilder()
     .setTitle(t("reward.custom.title"))
@@ -259,7 +240,7 @@ async function handleCustom(ix: ChatInputCommandInteraction) {
   await ix.reply({
     content: t("reward.custom.contentApplied", { mentions: mentionList }),
     embeds: [embed],
-    allowedMentions: { users: recipients.map((u) => u.id) }
+    allowedMentions: { users: recipients.map(([u,c]) => u.id) }
   });
 }
 
@@ -268,7 +249,7 @@ async function handleDm(ix: ChatInputCommandInteraction) {
   const u = ix.user;
   const reason = ix.options.getString("reason") ?? null;
 
-  const before = await getPlayer(u.id);
+  const before = await getPlayer(u.id,"");
 
   if (!before) {
     return ix.reply({ flags: MessageFlags.Ephemeral, content: t("reward.errors.dmNoRecord") });
@@ -278,7 +259,7 @@ async function handleDm(ix: ChatInputCommandInteraction) {
 
   const delta = computeDmReward(level);
   const next = applyResourceDeltas(before, delta);
-  await saveSnapshot(u.id, { xp: next.xp, level: next.level, cp: next.cp, tp: next.tp, name: before.name });
+  adjustResource(u.id, ["cp","tp","xp","level"], [next.cp,next.tp,next.xp,next.level], true)
 
   if (next.levelsChanged !== 0) {
     await announceLevelChange(ix, u.id, before.name, next.level, next.levelsChanged);

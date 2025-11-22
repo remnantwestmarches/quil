@@ -5,19 +5,11 @@ import {
   MessageFlags,
 } from "discord.js";
 import { CONFIG } from "../config/resolved.js";
-import { getDb } from "../db/index.js";
+import { getPlayer } from "../utils/db_queries.js";
+import { adjustResource } from "../utils/db_queries.js";
 
 import { t } from "../lib/i18n.js";
 
-type PlayerRow = {
-  userId: string;
-  name: string;
-  level: number;
-  xp: number;
-  cp: number; // stored in copper
-  tp: number;
-  active: boolean;
-};
 
 const CFG = CONFIG.guild!.config;
 const REWARDS_CHANNEL_ID = CFG.channels?.resourceTracking || null;
@@ -26,19 +18,6 @@ const MAGIC_ITEMS_CHANNEL_ID = CFG.channels?.magicItems || null;
 // helpers
 const toCp = (gp: number) => Math.round(gp * 100);
 const toGp = (cp: number) => (cp / 100).toFixed(2);
-
-async function getPlayer(userId: string) {
-  const db = await getDb();
-  return db.get<PlayerRow>("SELECT * FROM charlog WHERE userId = ? AND active = 1", [userId]);
-}
-
-async function addCp(userId: string, deltaCp: number) {
-  const db = await getDb();
-  await db.run("UPDATE charlog SET cp = cp + ? WHERE userId = ? AND active = 1", [
-    deltaCp,
-    userId,
-  ]);
-}
 
 export const data = new SlashCommandBuilder()
   .setName("sell")
@@ -113,7 +92,7 @@ if (!isInAllowedChannel && isInConfiguredGuild) {
   
   
   const deltaCp = toCp(amountGp);
-  await addCp(user.id, deltaCp);
+  await adjustResource(user.id, ["cp"], [deltaCp])
   
   const updated = await getPlayer(user.id);
   const newGp = updated ? toGp(updated.cp) : toGp((row?.cp ?? 0) + deltaCp);

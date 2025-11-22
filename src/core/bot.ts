@@ -17,6 +17,7 @@ import { initDb } from "../db/index.js";
 
 import * as retire from "../commands/retire.js";
 import { t } from "../lib/i18n.js";
+import { autocomplete } from "../commands/charinfo.js";
 
 // figure out if we're executing from dist or src
 
@@ -126,6 +127,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
       }
     }
     return;
+  }
+
+  if (interaction.isAutocomplete()) {
+    return autocomplete(interaction);
   }
 
   if (interaction.isModalSubmit()) {

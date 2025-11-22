@@ -6,6 +6,7 @@ import {
 } from 'discord.js';
 import { getDb } from '../db/index.js';
 import { t } from '../lib/i18n.js';
+import { getPlayer } from '../utils/db_queries.js';
 
 export const data = new SlashCommandBuilder()
   .setName('swap')
@@ -27,11 +28,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  const found = await db.get(
-    `SELECT * FROM charlog WHERE userId = ? AND name = ?`,
-    targetUser.id,
-    rawName
-  );
+  const found = await getPlayer(targetUser.id, rawName)
 
   if (!found){
     await interaction.reply({ ephemeral: true, content: 'There is no entry with that name in the guild ledger.' });

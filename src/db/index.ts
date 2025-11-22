@@ -2,6 +2,8 @@ import { open, Database } from 'sqlite';
 import sqlite3 from 'sqlite3';
 import fs from 'fs';
 import path from 'path';
+import { time } from 'console';
+import { date } from 'zod';
 
 export type Sqlite = Database<sqlite3.Database, sqlite3.Statement>;
 let _db: Sqlite | null = null;
@@ -105,6 +107,14 @@ export async function migrateDb(dbFile = DEFAULT_DB) {
   if (!migrate_check2) {await db.exec(`
     ALTER TABLE charlog
     ADD COLUMN dtp INTEGER NOT NULL DEFAULT 0;
+  `);}
+  // add COLUMN dtp_updated to charlog
+  const migrate_check3 = await db.get(`SELECT * FROM pragma_table_info('charlog') WHERE name = 'dtp_updated';`);
+  const timestamp = new Date().getTime() / 1000
+  const timestampNormal = timestamp - (timestamp % 86400)
+  if (!migrate_check3) {await db.exec(`
+    ALTER TABLE charlog
+    ADD COLUMN dtp_updated INTEGER NOT NULL DEFAULT ${ timestampNormal };
   `);}
 
   console.log(`📂 Database migrations done: ${dbFile}`);

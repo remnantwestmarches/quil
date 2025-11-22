@@ -7,6 +7,7 @@ import {
 } from 'discord.js';
 import { getDb } from '../db/index.js';
 import { t } from '../lib/i18n.js';
+import { getPlayer } from '../utils/db_queries.js';
 
 export const data = new SlashCommandBuilder()
   .setName('initiate')
@@ -31,11 +32,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  const duplicate = await db.get(
-    `SELECT name FROM charlog WHERE userId = ? AND name = ?`,
-    targetUser.id,
-    rawName
-  );
+  const duplicate = await getPlayer(targetUser.id, rawName)
 
   if (duplicate){
     await interaction.reply({ ephemeral: true, content:

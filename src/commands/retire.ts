@@ -8,12 +8,12 @@ import {
   ActionRowBuilder,
   ModalSubmitInteraction,
   MessageFlags,
-  TextDisplayBuilder,
 } from 'discord.js';
 import { getDb } from '../db/index.js';
 
 import { CONFIG } from '../config/resolved.js';
 import { t } from '../lib/i18n.js';
+import { getPlayer } from '../utils/db_queries.js';
 
 export const data = new SlashCommandBuilder()
   .setName('retire')
@@ -84,16 +84,12 @@ export async function handleModal(interaction: ModalSubmitInteraction) {
   const actor = interaction.user;
 
   const db = await getDb();
-  const tables = await db.all<{ name: string }[]>(`SELECT name FROM sqlite_master WHERE type='table'`);
-  const hasAdventurers = tables.some(t => t.name === 'adventurers');
-  const hasCharlog = tables.some(t => t.name === 'charlog');
 
   let row = null;
   let query = `FROM charlog WHERE userId = ${targetId}`
   if (char) { query += ` AND name = '${char}'` }
   else { query += " AND active = true" }
-  if (hasAdventurers) row = await db.get(`SELECT * FROM adventurers WHERE user_id = ?`, targetId);
-  else if (hasCharlog) row = await db.get(`SELECT * ${query}`);
+  row = await getPlayer(targetId, char)
 
   if (!row) {
     return interaction.reply({
@@ -102,8 +98,7 @@ export async function handleModal(interaction: ModalSubmitInteraction) {
     });
   }
 
-  if (hasAdventurers) await db.run(`DELETE FROM adventurers WHERE user_id = ?`, targetId);
-  else if (hasCharlog) await db.run(`DELETE ${query}`);
+  await db.run(`DELETE ${query}`);
 
   let lastChar = false
   const activeCharLeft = await db.get(`SELECT * FROM charlog WHERE userId = ? AND active = 1`, targetId);
