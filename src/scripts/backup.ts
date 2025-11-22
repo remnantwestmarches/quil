@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 
 const DB_FILE = process.env.DB_FILE || './data/remnant.sqlite';
-const BACKUP_DIR = process.env.BACKUP_DIR || './backups';
+const BACKUP_DIR = process.env.BACKUP_DIR || '../bissel-modern-backup/backups';
 const RETAIN_DAYS = Number(process.env.BACKUP_RETAIN_DAYS ?? 14);
 
 function stamp() {

@@ -4,15 +4,15 @@
     { "level": 2,  "tier": "low",  "xp": 150,   "gp": 200,  "tp": 3  },
     { "level": 3,  "tier": "low",  "xp": 450,   "gp": 200,  "tp": 3  },
     { "level": 4,  "tier": "low",  "xp": 950,   "gp": 200,  "tp": 3  },
-    { "level": 5,  "tier": "low",  "xp": 1875,  "gp": 200,  "tp": 3  },
 
+    { "level": 5,  "tier": "mid",  "xp": 1875,  "gp": 600,  "tp": 4  },
     { "level": 6,  "tier": "mid",  "xp": 2250,  "gp": 600,  "tp": 4  },
     { "level": 7,  "tier": "mid",  "xp": 1650,  "gp": 600,  "tp": 4  },
     { "level": 8,  "tier": "mid",  "xp": 2100,  "gp": 600,  "tp": 4  },
     { "level": 9,  "tier": "mid",  "xp": 2400,  "gp": 600,  "tp": 4  },
     { "level": 10, "tier": "mid",  "xp": 3150,  "gp": 600,  "tp": 4  },
-    { "level": 11, "tier": "mid",  "xp": 2250,  "gp": 600,  "tp": 4  },
 
+    { "level": 11, "tier": "high", "xp": 2250,  "gp": 1500, "tp": 5  },
     { "level": 12, "tier": "high", "xp": 3000,  "gp": 1500, "tp": 5 },
     { "level": 13, "tier": "high", "xp": 4000,  "gp": 1500, "tp": 5 },
     { "level": 14, "tier": "high", "xp": 5000,  "gp": 1500, "tp": 5 },

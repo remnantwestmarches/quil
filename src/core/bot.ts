@@ -17,6 +17,7 @@ import { initDb } from "../db/index.js";
 
 import * as retire from "../commands/retire.js";
 import { t } from "../lib/i18n.js";
+import { autocomplete } from "../commands/charinfo.js";
 
 // figure out if we're executing from dist or src
 
@@ -57,7 +58,12 @@ async function loadCommands() {
         console.warn(`⚠️  Skipping ${full}: no export 'data' with a name`);
         continue;
       }
-      commands.set(mod.data.name, mod);
+      const cmdJSON = mod.data.toJSON();
+      if (isDevelopment){
+        // Modify the name dynamically
+        cmdJSON.name = `dev_${cmdJSON.name}`;
+      }
+      commands.set(cmdJSON.name, mod);
     } catch (err) {
       console.error(`❌ Failed to import ${f}:`, err);
     }
@@ -121,6 +127,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
       }
     }
     return;
+  }
+
+  if (interaction.isAutocomplete()) {
+    return autocomplete(interaction);
   }
 
   if (interaction.isModalSubmit()) {

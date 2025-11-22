@@ -1,22 +1,25 @@
 // commands/charinfo.ts
-import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, MessageFlags } from "discord.js";
-import { getDb } from "../db/index.js";
+import { AutocompleteInteraction, SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, MessageFlags } from "discord.js";
 import { t } from "../lib/i18n.js";
+import { characterAutocomplete } from "../utils/autocomplete.js";
+import { getPlayer } from "../utils/db_queries.js";
 
 export const data = new SlashCommandBuilder()
   .setName("charinfo")
   .setDescription("Show your character info (or mention a user)")
-  .addUserOption((o) => o.setName("user").setDescription("Target user"));
+  .addUserOption((o) => o.setName("user").setDescription("Target user"))
+  .addStringOption((o) => o.setName("character").setDescription("Target character").setAutocomplete(true));
 
+
+export async function autocomplete(interaction: AutocompleteInteraction) {
+  await characterAutocomplete(interaction);
+}
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   const user = interaction.options.getUser("user") ?? interaction.user;
+  const char = interaction.options.getString("character") ?? undefined;
   const caller = interaction.user;
-  const db = getDb();
-  const row = await db.get(
-    "SELECT name, level, xp, tp, cp FROM charlog WHERE userId = ?",
-    user.id
-  );
+  const row = await getPlayer(user.id, char)
   if (!row) {
     await interaction.reply({
       flags: MessageFlags.Ephemeral,

@@ -37,10 +37,10 @@
             "Logged {name}: **{item}** bought for **{amount} GP**. Balance now **{newGp} GP**.",
             "Ledger updated {name} — **{item}** purchased (**{amount} GP**). Remaining GP: **{newGp}**."
         ],
-        "purchaseSuccessGT": [
-            "Purchase complete, {name}: **{item}** for 🎫 **{amount} GT**. New total: **{newGt} GT**.",
-            "Logged {name}: **{item}** bought for 🎫 **{amount} GT**. Balance now **{newGt} GT**.",
-            "Ledger updated {name} — **{item}** purchased (🎫 **{amount} GT**). Remaining GT: **{newGt}**."
+        "purchaseSuccessResource": [
+            "Purchase complete, {name}: **{item}** for **{amount} {resource}**. New total: **{newGt} {resource}**.",
+            "Logged {name}: **{item}** bought for **{amount} {resource}**. Balance now **{newGt} {resource}**.",
+            "Ledger updated {name} — **{item}** purchased (**{amount} {resource}**). Remaining {resource}: **{newGt}**."
         ],
         "reasonFmt": " _({reason})_"
     }

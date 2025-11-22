@@ -74,7 +74,7 @@ function isAdmin(member: GuildMember | null) {
 async function getCharlogXPName(userId: string): Promise<{ xp: number; name: string } | null> {
   const db = await getDb();
   const row = await db.get<{ xp: number; name: string }>(
-    `SELECT xp, name FROM charlog WHERE userId = ?`,
+    `SELECT xp, name FROM charlog WHERE userId = ? AND active = 1`,
     userId
   );
   return row ?? null;

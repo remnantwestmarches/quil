@@ -16,30 +16,9 @@ import { CONFIG } from "../config/resolved.js";
 import { validateCommandPermissions } from "../config/validaters.js";
 import { getDb } from "../db/index.js";
 import { t } from "../lib/i18n.js";
+import { adjustResource, getPlayer } from "../utils/db_queries.js";
 const MAGIC_ITEMS_CHANNEL_ID = CONFIG.guild?.config.channels?.magicItems || null;
 
-type PlayerRow = { userId: string; name: string; xp: number; level: number };
-
-async function getPlayerByUserId(userId: string): Promise<PlayerRow | null> {
-  const db = await getDb();
-    const row = await db.get<PlayerRow>(
-    `SELECT userId, name, xp, level FROM charlog WHERE userId = ?`,
-    userId
-    );
-    return row ?? null;
-}
-
-async function updatePlayerXPLevel(userId: string, xp: number, level: number, displayName?: string) {
-  const db = await getDb();
-  const res = await db.run(`UPDATE charlog SET xp = ?, level = ? WHERE userId = ?`, [xp, level, userId]);
-  if (res.changes === 0) {
-    await db.run(
-      `INSERT INTO charlog (userId, name, level, xp, cp, tp) VALUES (?, ?, ?, ?, 0, 0)`,
-      [userId, displayName ?? `<@${userId}>`, level, xp]
-    );
-    console.log(`Updated XP/level for ${userId}: ${xp} XP, level ${level}`);
-  }
-}
 
 // Permissions
 const CFG = CONFIG.guild!.config;
@@ -148,7 +127,7 @@ if (!isInAllowedChannel && isInConfiguredGuild) {
 
   if (sub === "show") {
     const user = ix.options.getUser("user") ?? ix.user;
-    const row = await getPlayerByUserId(user.id);
+    const row = await getPlayer(user.id);
     if (!row) {
       return ix.reply({ flags: MessageFlags.Ephemeral, content: t('xp.errors.notInSystem', { username: user.username }) });
     }
@@ -179,7 +158,7 @@ if (!isInAllowedChannel && isInConfiguredGuild) {
   // Mutations: add / adjust / set
   const user = ix.options.getUser("user", true);
   const reason = ix.options.getString("reason") ?? null;
-  const before = await getPlayerByUserId(user.id);
+  const before = await getPlayer(user.id);
 
   if (!before) {
     return ix.reply({ flags: MessageFlags.Ephemeral, content: t('xp.errors.notInSystem', { username: user.username }) });
@@ -190,7 +169,7 @@ if (!isInAllowedChannel && isInConfiguredGuild) {
     if (amt <= 0) return ix.reply({ flags: MessageFlags.Ephemeral, content: t('xp.errors.amountMin1') });
 
     const res = applyXP({ xp: before.xp, level: before.level }, amt);
-    await updatePlayerXPLevel(user.id, res.xp, res.level);
+    await adjustResource(user.id, ["xp","level"], [res.xp,res.level], true);
 
     await ix.reply({
       content: t('xp.add.ok', {
@@ -214,7 +193,7 @@ if (!isInAllowedChannel && isInConfiguredGuild) {
     const amt = ix.options.getInteger("amount", true);
 
     const res = applyXP({ xp: before.xp, level: before.level }, amt);
-    await updatePlayerXPLevel(user.id, res.xp, res.level);
+    await adjustResource(user.id, ["xp","level"], [res.xp,res.level], true);
     
     const sign = amt >= 0 ? "+" : "−";
 
@@ -243,7 +222,7 @@ if (!isInAllowedChannel && isInConfiguredGuild) {
     if (amt < 0) return ix.reply({ flags: MessageFlags.Ephemeral, content: t('xp.errors.amountMin0') });
 
     const newLevel = levelForXP(amt);
-    await updatePlayerXPLevel(user.id, amt, newLevel);
+    await adjustResource(user.id, ["xp","level"], [amt,newLevel], true);
 
     await ix.reply({
       content: t('xp.set.ok', {

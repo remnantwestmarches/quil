@@ -19,6 +19,7 @@ export type CoreRoles = Record<Capability, RoleRef>;
 export type GuildChannels = {
     staff: string; // gen staff ops
     resourceTracking?: string;
+    dtpTracking?: string;
     magicItems?: string;
     // other generic channels can be added here
     }
@@ -54,6 +55,7 @@ export type LfgFeatureConfig = {
 
 export type Features = {
     wipes?: { enabled: boolean }; // placeholder for future wipe tracking feature
+    dtp?: { rate: number }; // amount of DTP gained per day
     lfg?: LfgFeatureConfig; 
     // this is where we put other features like charlog and economy.
 }
@@ -92,12 +94,14 @@ export const DEFAULT_CONFIG: AppConfig = {
                 dm: {id: "1333297187353788437"},
             },
             channels: {
-                staff: "1373530978039107679",
+                staff: "1401605229996408933",
                 resourceTracking: "1347077993830289418",
+                dtpTracking: "1336083139272900740",
                 magicItems: "1347077949714731048",
             },
             features: {
                 wipes: { enabled: false },
+                dtp: { rate: 2 },
                 lfg: {
                     enabled: true,
                     channels: {
