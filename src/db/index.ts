@@ -121,6 +121,54 @@ export async function migrateDb(dbFile = DEFAULT_DB) {
   return db;
 }
 
+export async function primaryKeyChange(dbFile = DEFAULT_DB) {
+  const db = await open({ filename: dbFile, driver: sqlite3.Database });
+  await db.exec(`
+    BEGIN TRANSACTION;
+
+    CREATE TABLE IF NOT EXISTS charlog_new (
+      userId TEXT,
+      name   TEXT NOT NULL,
+      level  INTEGER NOT NULL,
+      xp     INTEGER NOT NULL,
+      cp     INTEGER NOT NULL,
+      tp     INTEGER NOT NULL,
+      active BOOL NOT NULL,
+      dtp INTEGER NOT NULL,
+      dtp_updated INTEGER NOT NULL,
+      PRIMARY KEY (userId, name)
+    );
+
+    -- Copy all data from old table
+    INSERT OR IGNORE INTO charlog_new
+        (userId, name, level, xp, cp, tp, active, dtp, dtp_updated)
+    SELECT
+        userid,
+        name,
+        level,
+        xp,
+        cp,
+        tp,
+        active,
+        dtp,
+        dtp_updated
+    FROM charlog;
+
+    -- Drop old table (only if not already dropped)
+    DROP TABLE IF EXISTS charlog;
+
+    -- Rename new table into place
+    ALTER TABLE charlog_new RENAME TO charlog;
+
+    -- === END MIGRATION ===
+
+    COMMIT;
+  `);
+
+  console.log(`📂 Database primary key migration done: ${dbFile}`);
+  return db;
+}
+
 export function getDb(): Sqlite {
   if (!_db) throw new Error('DB not initialized — call initDb() before using getDb()');
   return _db;
