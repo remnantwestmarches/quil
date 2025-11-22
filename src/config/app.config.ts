@@ -88,16 +88,16 @@ export const DEFAULT_CONFIG: AppConfig = {
         config: {
             name: "Remnant",
             roles: {
-                member: {id: "844466442036707399"}, // crew
-                admin: {id: "844466442036707399"},
-                moderator: {id: "844466442036707399"},
-                dm: {id: "844466442036707399"},
+                member: {id: "1333300035596714014"}, // crew
+                admin: {id: "371700885014970378"},
+                moderator: {id: "371997814407954434"},
+                dm: {id: "1333297187353788437"},
             },
             channels: {
-                staff: "1364512539261534228",
-                resourceTracking: "1364512539261534228",
-                dtpTracking: "1364512539261534228",
-                magicItems: "1364512539261534228",
+                staff: "1401605229996408933",
+                resourceTracking: "1347077993830289418",
+                dtpTracking: "1336083139272900740",
+                magicItems: "1347077949714731048",
             },
             features: {
                 wipes: { enabled: false },
