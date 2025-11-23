@@ -5,6 +5,7 @@ import {
   MessageFlags,
   GuildMember,
   userMention,
+  User,
 } from "discord.js";
 import { CONFIG } from "../config/resolved.js";
 import { t } from "../lib/i18n.js";
@@ -92,6 +93,16 @@ export const data = new SlashCommandBuilder()
       )
   );
 
+export async function updateDTP(user: User){
+  const row = await getPlayer(user.id)
+  if (!row) { return null }
+  const timestamp = Math.round(new Date().getTime() / 1000)
+  const timestampNormal = timestamp - (timestamp % Math.round(86400 / DTP_RATE))
+  const dtpcalc = row.dtp + ((timestampNormal - row.dtp_updated) / Math.round(86400 / DTP_RATE))
+  await adjustResource(user.id, ["dtp", "dtp_updated"], [dtpcalc, timestampNormal], true, row.name)
+  return dtpcalc
+}
+
 export async function execute(ix: ChatInputCommandInteraction) {
   const sub = ix.options.getSubcommand();
   const member = ix.member as GuildMember | null;
@@ -114,17 +125,12 @@ export async function execute(ix: ChatInputCommandInteraction) {
   }
 
   let user = ix.options.getUser("user") ?? ix.user;
-  let row = await getPlayer(user.id);
-  if (!row) {
+  if (!updateDTP(user)) {
     return ix.reply({
       flags: MessageFlags.Ephemeral,
       content: t('dtp.errors.notInSystem', { username: user.username }),
     });
   }
-  const timestamp = Math.round(new Date().getTime() / 1000)
-  const timestampNormal = timestamp - (timestamp % Math.round(86400 / DTP_RATE))
-  const dtpcalc = row.dtp + ((timestampNormal - row.dtp_updated) / Math.round(86400 / DTP_RATE))
-  await adjustResource(user.id, ["dtp", "dtp_updated"], [dtpcalc, timestampNormal], true, row.name);
 
   if (sub === "show") {
     const row = await getPlayer(user.id);
@@ -146,7 +152,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
   // mutating subcommands
   user = ix.options.getUser("user", true);
   const reason = ix.options.getString("reason") ?? null;
-  row = await getPlayer(user.id);
+  const row = await getPlayer(user.id);
 
   if (!row) {
     return ix.reply({

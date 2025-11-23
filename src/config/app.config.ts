@@ -19,6 +19,7 @@ export type CoreRoles = Record<Capability, RoleRef>;
 export type GuildChannels = {
     staff: string; // gen staff ops
     resourceTracking?: string;
+    rewardsTracking?: string;
     dtpTracking?: string;
     magicItems?: string;
     // other generic channels can be added here
@@ -96,6 +97,7 @@ export const DEFAULT_CONFIG: AppConfig = {
             channels: {
                 staff: "1401605229996408933",
                 resourceTracking: "1347077993830289418",
+                rewardsTracking: "1441703165056516137",
                 dtpTracking: "1336083139272900740",
                 magicItems: "1347077949714731048",
             },

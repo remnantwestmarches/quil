@@ -3,6 +3,7 @@ import { AutocompleteInteraction, SlashCommandBuilder, ChatInputCommandInteracti
 import { t } from "../lib/i18n.js";
 import { characterAutocomplete } from "../utils/autocomplete.js";
 import { getPlayer } from "../utils/db_queries.js";
+import { updateDTP } from "./dtp.js";
 
 export const data = new SlashCommandBuilder()
   .setName("charinfo")
@@ -29,6 +30,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   }
   const gp = (row.cp / 100).toFixed(2);
   const tp = (row.tp).toFixed(1);
+  const dtp = await updateDTP(user)
  
 // Reply with embed
   await interaction.reply({embeds: [
@@ -39,10 +41,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         .setDescription("OOC Owner: " + user.toString())
         .addFields(
           { name: 'Level', value: "⭐ " + String(row.level), inline: true },
-          { name: 'Experience (XP)', value:"💪 " + String(row.xp), inline: true })
-          .addFields(
-            { name: 'Golden Tickets (GT)', value: "🎫 " + tp, inline: false },
-            { name: 'Gold Pieces (GP)', value: "💰 " + gp, inline: true },
+          { name: 'Experience (XP)', value:"💪 " + String(row.xp), inline: true },
+          { name: "\u200b", value: "\u200b", inline: true },
+          { name: 'Gold Pieces (GP)', value: "💰 " + gp, inline: true },
+          { name: 'Golden Tickets (GT)', value: "🎫 " + tp, inline: true },
+          { name: 'Downtime (DTP)', value: "🔨 " + dtp, inline: true },
         )
         .setFooter({ text: "Requested via " + caller.displayName, iconURL: caller.displayAvatarURL() })
     ] });
