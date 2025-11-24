@@ -32,9 +32,9 @@ const CFG = CONFIG.guild!.config;
 const ROLE = CFG.roles;
 
 const PERMS = {
-  custom: [ROLE.dm.id, ROLE.moderator.id, ROLE.admin.id, ROLE.keeper.id],
-  dm: [ROLE.dm.id, ROLE.moderator.id, ROLE.admin.id, ROLE.keeper.id],
-  staff: [ROLE.moderator.id, ROLE.admin.id, ROLE.keeper.id],
+  custom: [ROLE.dm.id, ROLE.moderator.id, ROLE.admin.id],
+  dm: [ROLE.dm.id, ROLE.moderator.id, ROLE.admin.id],
+  staff: [ROLE.moderator.id, ROLE.admin.id],
 };
 
 const REWARDS_CHANNEL_ID = CFG.channels?.resourceTracking;

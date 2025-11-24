@@ -39,7 +39,7 @@ export const data = new SlashCommandBuilder()
       .setDescription("Is this purchase to be made with GT or DTP? (Default: GP)")
       .setRequired(false)
       .addChoices(
-        { name: "GP (Gold Pieces)", value: "cp" },
+        { name: "GP (Gold Pieces)", value: "gp" },
         { name: "GT (Golden Tickets)", value: "tp" },
         { name: "DTP (Downtime)", value: "dtp" }
       )
@@ -64,7 +64,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
 
   const item = ix.options.getString("item", true).trim();
   const amountGp = ix.options.getNumber("amount", true);
-  let resource = ix.options.getString("type") || "cp";
+  const resource = ix.options.getString("type") || "gp";
 
   // sanity checks
   if (!item) {
@@ -96,34 +96,34 @@ export async function execute(ix: ChatInputCommandInteraction) {
     return;
   }
   
-  // any purchase
-  let amount = 0;
-  if (resource === "cp") { amount = toCp(amountGp) }
-  else { amount = amountGp }
-  await adjustResource(user.id, [resource], [amount * -1])
+  // GT purchase
+  if (resource === "tp" || resource === "dtp") {
+    const amount = amountGp;
+    await adjustResource(user.id, [resource], [amount * -1])
 
-  const updated = await getPlayer(user.id);
-  const icons: { [id: string]: string; } = {"GP":"💰", "GT":"🎫", "DTP":"🔨"}
-  const name = row.name;
-  let newGt = 0;
-  if (resource === "tp") { 
-    resource = "GT" //rename again for display
-    newGt = updated ? updated.tp : Math.max(0, (row?.tp ?? 0) - amount);
-  }
-  else if (resource === "cp") {
-    resource = "GP"
-    amount = Math.round(amount / 100)
-    newGt = updated ? Math.round(updated.cp / 100) : Math.max(0, (row?.cp ?? 0) - amount);
-  }
-  else if (resource === "dtp") {
-    resource = "DTP"
-    newGt = updated ? updated.dtp : Math.max(0, (row?.dtp ?? 0) - amount);
-  }
+    const updated = await getPlayer(user.id);
+    const name = row.name;
+    let newGt = 0;
+    if (resource === "tp") { newGt = updated ? updated.tp : Math.max(0, (row?.tp ?? 0) - amount); }
+    else if (resource === "dtp") { newGt = updated ? updated.dtp : Math.max(0, (row?.dtp ?? 0) - amount); }
+    
+    await ix.reply({
+      content: t('buy.purchaseSuccessResource', { item, amount: amount.toFixed(0), newGt, name, resource: resource }),
+    });
+    return;
+  } 
+
+  // GP purchase
+  const deltaCp = toCp(amountGp);
+  await adjustResource(user.id, ["cp"], [deltaCp * -1])
   
+  const updated = await getPlayer(user.id);
+  const newGp = updated ? toGp(updated.cp) : toGp((row?.cp ?? 0) + deltaCp);
+  const name = row.name
+
   await ix.reply({
-    content: t('buy.purchaseSuccessResource', { item, amount: amount.toFixed(0), newGt, name, resource: resource, icon: icons[resource] ?? '' }),
+    content: t('buy.purchaseSuccess', { item, amount: amountGp.toFixed(2), newGp, name }),
   });
-  return;
 }
 
 export default { data, execute };

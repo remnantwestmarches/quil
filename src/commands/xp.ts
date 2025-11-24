@@ -5,7 +5,6 @@ import {
   GuildMember,
   MessageFlags,
   userMention,
-  AutocompleteInteraction,
 } from "discord.js";
 import {
   applyXP,
@@ -18,7 +17,6 @@ import { validateCommandPermissions } from "../config/validaters.js";
 import { getDb } from "../db/index.js";
 import { t } from "../lib/i18n.js";
 import { adjustResource, getPlayer } from "../utils/db_queries.js";
-import { characterAutocomplete } from "../utils/autocomplete.js";
 const MAGIC_ITEMS_CHANNEL_ID = CONFIG.guild?.config.channels?.magicItems || null;
 
 
@@ -27,8 +25,8 @@ const CFG = CONFIG.guild!.config;
 const ROLE = CFG.roles;
 
 const PERMS = {
-  add: [ROLE.dm.id, ROLE.moderator.id, ROLE.admin.id, ROLE.keeper.id].filter((id): id is string => id !== undefined),
-  adjust: [ROLE.moderator.id, ROLE.admin.id, ROLE.keeper.id].filter((id): id is string => id !== undefined),
+  add: [ROLE.dm.id, ROLE.moderator.id, ROLE.admin.id].filter((id): id is string => id !== undefined),
+  adjust: [ROLE.moderator.id, ROLE.admin.id].filter((id): id is string => id !== undefined),
   set: [ROLE.admin.id].filter((id): id is string => id !== undefined),
   show: [] as string[], // empty => everyone
 };
@@ -69,7 +67,6 @@ export const data = new SlashCommandBuilder()
       .addIntegerOption((o) =>
         o.setName("amount").setDescription("XP to add (≥1)").setRequired(true).setMinValue(1)
       )
-      .addStringOption(o => o.setName('name').setDescription("Adventurer's name").setRequired(false).setAutocomplete(true))
       .addStringOption((o) =>
         o.setName("reason").setDescription("Why? (for audit purposes)").setMaxLength(200)
       )
@@ -84,7 +81,6 @@ export const data = new SlashCommandBuilder()
       .addIntegerOption((o) =>
         o.setName("amount").setDescription("Signed XP delta, e.g. -50").setRequired(true)
       )
-      .addStringOption(o => o.setName('name').setDescription("Adventurer's name").setRequired(false).setAutocomplete(true))
       .addStringOption((o) =>
         o.setName("reason").setDescription("Why? (for audit purposes)").setMaxLength(200)
       )
@@ -99,7 +95,6 @@ export const data = new SlashCommandBuilder()
       .addIntegerOption((o) =>
         o.setName("amount").setDescription("Absolute XP (≥0)").setRequired(true).setMinValue(0)
       )
-      .addStringOption(o => o.setName('name').setDescription("Adventurer's name").setRequired(false).setAutocomplete(true))
       .addStringOption((o) =>
         o.setName("reason").setDescription("Why? (for audit purposes)").setMaxLength(200)
       )
@@ -107,19 +102,11 @@ export const data = new SlashCommandBuilder()
   .addSubcommand((sc) =>
     sc
       .setName("show")
-      .addStringOption(o =>
-        o.setName('name').setDescription("Adventurer's name").setRequired(true).setAutocomplete(true)
-      )
       .setDescription("Show a user's XP, level, and progress")
       .addUserOption((o) => o.setName("user").setDescription("Target (defaults to you)"))
   )
 
 // ---- Executor ----
-
-export async function autocomplete(interaction: AutocompleteInteraction) {
-  await characterAutocomplete(interaction);
-}
-
 export async function execute(ix: ChatInputCommandInteraction) {
   const sub = ix.options.getSubcommand();
   const member = ix.member as GuildMember | null;
@@ -140,8 +127,7 @@ if (!isInAllowedChannel && isInConfiguredGuild) {
 
   if (sub === "show") {
     const user = ix.options.getUser("user") ?? ix.user;
-    const char = ix.options.getString("name") ?? "";
-    const row = await getPlayer(user.id, char);
+    const row = await getPlayer(user.id);
     if (!row) {
       return ix.reply({ flags: MessageFlags.Ephemeral, content: t('xp.errors.notInSystem', { username: user.username }) });
     }
@@ -164,15 +150,15 @@ if (!isInAllowedChannel && isInConfiguredGuild) {
         { name: t("xp.show.fields.next"),  value: nextDisp, inline: false },
         { name: t("xp.show.fields.progress"), value: pctStr, inline: false }
       );
-    await ix.reply({embeds: [embed] });
-    return;
-  }
+
+        await ix.reply({embeds: [embed] });
+        return;
+      }
 
   // Mutations: add / adjust / set
   const user = ix.options.getUser("user", true);
-  const char = ix.options.getString("name") ?? "";
   const reason = ix.options.getString("reason") ?? null;
-  const before = await getPlayer(user.id, char);
+  const before = await getPlayer(user.id);
 
   if (!before) {
     return ix.reply({ flags: MessageFlags.Ephemeral, content: t('xp.errors.notInSystem', { username: user.username }) });
@@ -183,7 +169,7 @@ if (!isInAllowedChannel && isInConfiguredGuild) {
     if (amt <= 0) return ix.reply({ flags: MessageFlags.Ephemeral, content: t('xp.errors.amountMin1') });
 
     const res = applyXP({ xp: before.xp, level: before.level }, amt);
-    await adjustResource(user.id, ["xp","level"], [res.xp,res.level], true, before.name);
+    await adjustResource(user.id, ["xp","level"], [res.xp,res.level], true);
 
     await ix.reply({
       content: t('xp.add.ok', {
@@ -207,7 +193,7 @@ if (!isInAllowedChannel && isInConfiguredGuild) {
     const amt = ix.options.getInteger("amount", true);
 
     const res = applyXP({ xp: before.xp, level: before.level }, amt);
-    await adjustResource(user.id, ["xp","level"], [res.xp,res.level], true, before.name);
+    await adjustResource(user.id, ["xp","level"], [res.xp,res.level], true);
     
     const sign = amt >= 0 ? "+" : "−";
 
@@ -236,7 +222,7 @@ if (!isInAllowedChannel && isInConfiguredGuild) {
     if (amt < 0) return ix.reply({ flags: MessageFlags.Ephemeral, content: t('xp.errors.amountMin0') });
 
     const newLevel = levelForXP(amt);
-    await adjustResource(user.id, ["xp","level"], [amt,newLevel], true, before.name);
+    await adjustResource(user.id, ["xp","level"], [amt,newLevel], true);
 
     await ix.reply({
       content: t('xp.set.ok', {

@@ -6,7 +6,7 @@
 
 
 // TYPE DEFINITIONS
-export type Capability = "admin" | "moderator" | "dm" | "member" | "keeper";
+export type Capability = "admin" | "moderator" | "dm" | "member";
 
 export type RoleRef = {
     id?: string;
@@ -19,7 +19,6 @@ export type CoreRoles = Record<Capability, RoleRef>;
 export type GuildChannels = {
     staff: string; // gen staff ops
     resourceTracking?: string;
-    rewardsTracking?: string;
     dtpTracking?: string;
     magicItems?: string;
     // other generic channels can be added here
@@ -91,14 +90,12 @@ export const DEFAULT_CONFIG: AppConfig = {
             roles: {
                 member: {id: "1333300035596714014"}, // crew
                 admin: {id: "371700885014970378"},
-                keeper: {id: "1439712101911494827"},
                 moderator: {id: "371997814407954434"},
                 dm: {id: "1333297187353788437"},
             },
             channels: {
                 staff: "1401605229996408933",
                 resourceTracking: "1347077993830289418",
-                rewardsTracking: "1441703165056516137",
                 dtpTracking: "1336083139272900740",
                 magicItems: "1347077949714731048",
             },

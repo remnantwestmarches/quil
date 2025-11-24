@@ -64,12 +64,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       author: { name: targetUser.displayName, icon_url: targetUser.displayAvatarURL() },
       description: t('initiate.description', { name: rawName }),
       fields: [
-        { name: '⬆️ Level', value: '3', inline: true },
-        { name: '💪 XP',    value: '900', inline: true },
-        { name: "\u200b", value: "\u200b", inline: true },
+        { name: '⬆️ Level', value: '3', inline: false },
+        { name: '💪 XP',    value: '900', inline: false },
         { name: '💰 GP',    value: '80.00', inline: true },
-        { name: '🎫 GT',    value: '0', inline: true },
-        { name: '🔨 DTP',    value: '0', inline: true },
+        { name: '🎫 GT',    value: '0.0', inline: true },
       ],
       footer: { 
         text: t('initiate.footer'), 
