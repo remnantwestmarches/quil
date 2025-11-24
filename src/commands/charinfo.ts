@@ -18,7 +18,7 @@ export async function autocomplete(interaction: AutocompleteInteraction) {
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   const user = interaction.options.getUser("user") ?? interaction.user;
-  const char = interaction.options.getString("character") ?? undefined;
+  const char = interaction.options.getString("character") ?? "";
   const caller = interaction.user;
   const row = await getPlayer(user.id, char)
   if (!row) {
@@ -30,7 +30,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   }
   const gp = (row.cp / 100).toFixed(2);
   const tp = (row.tp).toFixed(1);
-  const dtp = await updateDTP(user)
+  const dtp = await updateDTP(user, char)
  
 // Reply with embed
   await interaction.reply({embeds: [

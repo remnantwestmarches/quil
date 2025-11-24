@@ -5,6 +5,7 @@ import {
   GuildMember,
   MessageFlags,
   userMention,
+  AutocompleteInteraction,
 } from "discord.js";
 import { CONFIG } from "../config/resolved.js";
 
@@ -12,13 +13,14 @@ import { validateCommandPermissions } from "../config/validaters.js";
 import { t } from "../lib/i18n.js";
 import { getPlayer } from "../utils/db_queries.js";
 import { adjustResource } from "../utils/db_queries.js";
+import { characterAutocomplete } from "../utils/autocomplete.js";
 
 const CFG = CONFIG.guild!.config;
 const ROLE = CFG.roles;
 
 const PERMS = {
-  add: [ROLE.dm.id, ROLE.moderator.id, ROLE.admin.id].filter((id): id is string => id !== undefined),
-  adjust: [ROLE.moderator.id, ROLE.admin.id].filter((id): id is string => id !== undefined),
+  add: [ROLE.dm.id, ROLE.moderator.id, ROLE.admin.id, ROLE.keeper.id].filter((id): id is string => id !== undefined),
+  adjust: [ROLE.moderator.id, ROLE.admin.id, ROLE.keeper.id].filter((id): id is string => id !== undefined),
   set: [ROLE.admin.id].filter((id): id is string => id !== undefined),
   show: [] as string[], // empty => everyone
 };
@@ -30,12 +32,14 @@ export const data = new SlashCommandBuilder()
     sc.setName("show")
       .setDescription("Show GT for a user")
       .addUserOption(o => o.setName("user").setDescription("Target (defaults to you)"))
+      .addStringOption(o => o.setName('name').setDescription("Adventurer's name").setRequired(false).setAutocomplete(true))
   )
   .addSubcommand(sc =>
     sc.setName("add")
       .setDescription("Give GT to a user")
       .addUserOption(o => o.setName("user").setDescription("Target").setRequired(true))
       .addNumberOption(o => o.setName("amount").setDescription("GT to add").setRequired(true).setMinValue(1))
+      .addStringOption(o => o.setName('name').setDescription("Adventurer's name").setRequired(false).setAutocomplete(true))
       .addStringOption(o => o.setName("reason").setDescription("Why? (audit)").setMaxLength(200))
   )
   .addSubcommand(sc =>
@@ -43,6 +47,7 @@ export const data = new SlashCommandBuilder()
       .setDescription("Adjust GT by a signed decimal")
       .addUserOption(o => o.setName("user").setDescription("Target").setRequired(true))
       .addNumberOption(o => o.setName("amount").setDescription("Signed GT delta (e.g., -1)").setRequired(true))
+      .addStringOption(o => o.setName('name').setDescription("Adventurer's name").setRequired(false).setAutocomplete(true))
       .addStringOption(o => o.setName("reason").setDescription("Why? (audit)").setMaxLength(200))
   )
   .addSubcommand(sc =>
@@ -50,8 +55,13 @@ export const data = new SlashCommandBuilder()
       .setDescription("Set a user's GT to an exact value")
       .addUserOption(o => o.setName("user").setDescription("Target").setRequired(true))
       .addNumberOption(o => o.setName("amount").setDescription("Absolute GT (>=0)").setRequired(true).setMinValue(0))
+      .addStringOption(o => o.setName('name').setDescription("Adventurer's name").setRequired(false).setAutocomplete(true))
       .addStringOption(o => o.setName("reason").setDescription("Why? (audit)").setMaxLength(200))
   );
+
+export async function autocomplete(interaction: AutocompleteInteraction) {
+  await characterAutocomplete(interaction);
+}
 
 export async function execute(ix: ChatInputCommandInteraction) {
   const sub = ix.options.getSubcommand();
@@ -61,6 +71,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
 
   if (sub === "show") {
     const user = ix.options.getUser("user") ?? ix.user;
+    const char = ix.options.getString("name") ?? "";
     const row = await getPlayer(user.id);
     if (!row) {
       return ix.reply({
@@ -79,8 +90,9 @@ export async function execute(ix: ChatInputCommandInteraction) {
   }
 
   const user = ix.options.getUser("user", true);
+  const char = ix.options.getString("name") ?? "";
   const reason = ix.options.getString("reason") ?? null;
-  const row = await getPlayer(user.id);
+  const row = await getPlayer(user.id, char);
   if (!row) {
     return ix.reply({
       flags: MessageFlags.Ephemeral,
@@ -93,7 +105,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
     if (amt <= 0) return ix.reply({ ephemeral: true, content: "Amount must be > 0." });
     const deltaUnits = amt;
     const next = Math.max(0, row.tp + deltaUnits);
-    await adjustResource(user.id, ["tp"], [next], true)
+    await adjustResource(user.id, ["tp"], [next], true, row.name);
     return ix.reply({
       content: t('gt.add.ok', {
         mention: userMention(user.id),
@@ -109,7 +121,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
     const amt = ix.options.getNumber("amount", true);
     const deltaUnits = amt;
     const next = Math.max(0, row.tp + deltaUnits);
-    await adjustResource(user.id, ["tp"], [next], true)
+    await adjustResource(user.id, ["tp"], [next], true, row.name);
     const sign = deltaUnits >= 0 ? "+" : "−";
     return ix.reply({
       content: t('gt.adjust.ok', {
@@ -126,7 +138,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
   if (sub === "set") {
     const amt = ix.options.getNumber("amount", true);
     const next = amt;
-    await adjustResource(user.id, ["tp"], [next], true)
+    await adjustResource(user.id, ["tp"], [next], true, row.name);
     return ix.reply({
       content: t('gt.set.ok', {
         mention: userMention(user.id),

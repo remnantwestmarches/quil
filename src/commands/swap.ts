@@ -3,17 +3,23 @@ import {
   SlashCommandBuilder,
   ChatInputCommandInteraction,
   EmbedBuilder,
+  AutocompleteInteraction,
 } from 'discord.js';
 import { getDb } from '../db/index.js';
 import { t } from '../lib/i18n.js';
 import { getPlayer } from '../utils/db_queries.js';
+import { characterAutocomplete } from '../utils/autocomplete.js';
 
 export const data = new SlashCommandBuilder()
   .setName('swap')
   .setDescription('Swap to another character')
   .addStringOption(o =>
-    o.setName('name').setDescription("Adventurer's name").setRequired(true))
-    
+    o.setName('name').setDescription("Adventurer's name").setRequired(true).setAutocomplete(true))
+
+export async function autocomplete(interaction: AutocompleteInteraction) {
+  await characterAutocomplete(interaction);
+}
+
 export async function execute(interaction: ChatInputCommandInteraction) {
 
   // --- inputs ---

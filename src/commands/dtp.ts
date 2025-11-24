@@ -6,19 +6,21 @@ import {
   GuildMember,
   userMention,
   User,
+  AutocompleteInteraction,
 } from "discord.js";
 import { CONFIG } from "../config/resolved.js";
 import { t } from "../lib/i18n.js";
 import { validateCommandPermissions } from "../config/validaters.js";
 import { adjustResource, getPlayer } from "../utils/db_queries.js";
+import { characterAutocomplete } from "../utils/autocomplete.js";
 
 const CFG = CONFIG.guild!.config;
 const ROLE = CFG.roles;
 const PERMS = {
-  add: [ROLE.dm.id, ROLE.moderator.id, ROLE.admin.id].filter(
+  add: [ROLE.dm.id, ROLE.moderator.id, ROLE.admin.id, ROLE.keeper.id].filter(
     Boolean
   ) as string[],
-  adjust: [ROLE.moderator.id, ROLE.admin.id].filter(Boolean) as string[],
+  adjust: [ROLE.moderator.id, ROLE.admin.id, ROLE.keeper.id].filter(Boolean) as string[],
   set: [ROLE.admin.id].filter(Boolean) as string[],
   show: [] as string[],
 };
@@ -38,6 +40,7 @@ export const data = new SlashCommandBuilder()
       .addUserOption((o) =>
         o.setName("user").setDescription("Target (defaults to you)")
       )
+      .addStringOption(o => o.setName('name').setDescription("Adventurer's name").setRequired(false).setAutocomplete(true))
   )
   .addSubcommand((sc) =>
     sc
@@ -53,6 +56,7 @@ export const data = new SlashCommandBuilder()
           .setRequired(true)
           .setMinValue(1)
       )
+      .addStringOption(o => o.setName('name').setDescription("Adventurer's name").setRequired(false).setAutocomplete(true))
       .addStringOption((o) =>
         o.setName("reason").setDescription("Why? (audit)").setMaxLength(200)
       )
@@ -70,6 +74,7 @@ export const data = new SlashCommandBuilder()
           .setDescription("Signed DTP delta (e.g., -3)")
           .setRequired(true)
       )
+      .addStringOption(o => o.setName('name').setDescription("Adventurer's name").setRequired(false).setAutocomplete(true))
       .addStringOption((o) =>
         o.setName("reason").setDescription("Why? (audit)").setMaxLength(200)
       )
@@ -88,19 +93,24 @@ export const data = new SlashCommandBuilder()
           .setRequired(true)
           .setMinValue(0)
       )
+      .addStringOption(o => o.setName('name').setDescription("Adventurer's name").setRequired(false).setAutocomplete(true))
       .addStringOption((o) =>
         o.setName("reason").setDescription("Why? (audit)").setMaxLength(200)
       )
   );
 
-export async function updateDTP(user: User){
-  const row = await getPlayer(user.id)
+export async function updateDTP(user: User, char: string = ""){
+  const row = await getPlayer(user.id, char)
   if (!row) { return null }
   const timestamp = Math.round(new Date().getTime() / 1000)
   const timestampNormal = timestamp - (timestamp % Math.round(86400 / DTP_RATE))
   const dtpcalc = row.dtp + ((timestampNormal - row.dtp_updated) / Math.round(86400 / DTP_RATE))
   await adjustResource(user.id, ["dtp", "dtp_updated"], [dtpcalc, timestampNormal], true, row.name)
   return dtpcalc
+}
+
+export async function autocomplete(interaction: AutocompleteInteraction) {
+  await characterAutocomplete(interaction);
 }
 
 export async function execute(ix: ChatInputCommandInteraction) {
@@ -125,7 +135,8 @@ export async function execute(ix: ChatInputCommandInteraction) {
   }
 
   let user = ix.options.getUser("user") ?? ix.user;
-  if (!updateDTP(user)) {
+  const char = ix.options.getString("name") ?? "";
+  if (!updateDTP(user, char)) {
     return ix.reply({
       flags: MessageFlags.Ephemeral,
       content: t('dtp.errors.notInSystem', { username: user.username }),
@@ -133,7 +144,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
   }
 
   if (sub === "show") {
-    const row = await getPlayer(user.id);
+    const row = await getPlayer(user.id, char);
     if (!row) {
       return ix.reply({
         flags: MessageFlags.Ephemeral,
@@ -152,7 +163,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
   // mutating subcommands
   user = ix.options.getUser("user", true);
   const reason = ix.options.getString("reason") ?? null;
-  const row = await getPlayer(user.id);
+  const row = await getPlayer(user.id, char);
 
   if (!row) {
     return ix.reply({

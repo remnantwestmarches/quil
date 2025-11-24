@@ -6,7 +6,7 @@
 
 
 // TYPE DEFINITIONS
-export type Capability = "admin" | "moderator" | "dm" | "member";
+export type Capability = "admin" | "moderator" | "dm" | "member" | "keeper";
 
 export type RoleRef = {
     id?: string;
@@ -91,6 +91,7 @@ export const DEFAULT_CONFIG: AppConfig = {
             roles: {
                 member: {id: "1333300035596714014"}, // crew
                 admin: {id: "371700885014970378"},
+                keeper: {id: "1439712101911494827"},
                 moderator: {id: "371997814407954434"},
                 dm: {id: "1333297187353788437"},
             },
