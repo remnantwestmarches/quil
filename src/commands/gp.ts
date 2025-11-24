@@ -4,13 +4,15 @@ import {
   EmbedBuilder,
   GuildMember,
   MessageFlags,
-  userMention
+  userMention,
+  AutocompleteInteraction
 } from "discord.js";
 import { CONFIG } from "../config/resolved.js";
 import { validateCommandPermissions } from "../config/validaters.js";
 import { t } from "../lib/i18n.js";
 import { getPlayer } from "../utils/db_queries.js";
 import { adjustResource } from "../utils/db_queries.js";
+import { characterAutocomplete } from "../utils/autocomplete.js";
 
 const MAGIC_ITEMS_CHANNEL_ID = CONFIG.guild?.config.channels?.magicItems || null;
 
@@ -19,10 +21,10 @@ const MAGIC_ITEMS_CHANNEL_ID = CONFIG.guild?.config.channels?.magicItems || null
 const CFG = CONFIG.guild!.config;
 const ROLE = CFG.roles;
 const PERMS = {
-  add: [ROLE.dm.id, ROLE.moderator.id, ROLE.admin.id].filter(
+  add: [ROLE.dm.id, ROLE.moderator.id, ROLE.admin.id, ROLE.keeper.id].filter(
     Boolean
   ) as string[],
-  adjust: [ROLE.moderator.id, ROLE.admin.id].filter(Boolean) as string[],
+  adjust: [ROLE.moderator.id, ROLE.admin.id, ROLE.keeper.id].filter(Boolean) as string[],
   set: [ROLE.admin.id].filter(Boolean) as string[],
   show: [] as string[],
 };
@@ -48,6 +50,7 @@ export const data = new SlashCommandBuilder()
       .addUserOption((o) =>
         o.setName("user").setDescription("Target (defaults to you)")
       )
+      .addStringOption(o => o.setName('name').setDescription("Adventurer's name").setRequired(false).setAutocomplete(true))
   )
   .addSubcommand((sc) =>
     sc
@@ -63,6 +66,7 @@ export const data = new SlashCommandBuilder()
           .setRequired(true)
           .setMinValue(0.01)
       )
+      .addStringOption(o => o.setName('name').setDescription("Adventurer's name").setRequired(false).setAutocomplete(true))
       .addStringOption((o) =>
         o.setName("reason").setDescription("Why? (audit)").setMaxLength(200)
       )
@@ -80,6 +84,7 @@ export const data = new SlashCommandBuilder()
           .setDescription("Signed GP delta (e.g., -350.75)")
           .setRequired(true)
       )
+      .addStringOption(o => o.setName('name').setDescription("Adventurer's name").setRequired(false).setAutocomplete(true))
       .addStringOption((o) =>
         o.setName("reason").setDescription("Why? (audit)").setMaxLength(200)
       )
@@ -98,10 +103,15 @@ export const data = new SlashCommandBuilder()
           .setRequired(true)
           .setMinValue(0)
       )
+      .addStringOption(o => o.setName('name').setDescription("Adventurer's name").setRequired(false).setAutocomplete(true))
       .addStringOption((o) =>
         o.setName("reason").setDescription("Why? (audit)").setMaxLength(200)
       )
   )
+
+export async function autocomplete(interaction: AutocompleteInteraction) {
+  await characterAutocomplete(interaction);
+}
 
 export async function execute(ix: ChatInputCommandInteraction) {
   const sub = ix.options.getSubcommand();
@@ -127,6 +137,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
 
   if (sub === "show") {
     const user = ix.options.getUser("user") ?? ix.user;
+    const char = ix.options.getString("name") ?? "";
     const row = await getPlayer(user.id);
     if (!row) {
       return ix.reply({
@@ -147,8 +158,9 @@ export async function execute(ix: ChatInputCommandInteraction) {
 
   // mutating subcommands
   const user = ix.options.getUser("user", true);
+  const char = ix.options.getString("name") ?? "";
   const reason = ix.options.getString("reason") ?? null;
-  const row = await getPlayer(user.id);
+  const row = await getPlayer(user.id, char);
 
   if (!row) {
     return ix.reply({
