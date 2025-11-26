@@ -8,6 +8,7 @@ import {
 import { getDb } from '../db/index.js';
 import { t } from '../lib/i18n.js';
 import { getPlayer } from '../utils/db_queries.js';
+import { CONFIG } from "../config/resolved.js";
 
 export const data = new SlashCommandBuilder()
   .setName('initiate')
@@ -48,12 +49,17 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     rawName
   );
   
+  const CFG = CONFIG.guild!.config;
+  const DTP_RATE = CFG.features.dtp?.rate || 1;
+  const timestamp = Math.round(new Date().getTime() / 1000)
+  const timestampNormal = timestamp - (timestamp % Math.round(86400 / DTP_RATE))
+
   // --- create baseline record (Level 3 / 900 XP / 80 GP / 0 TP) ---
   await db.run(
-    `INSERT INTO charlog (userId, name, level, xp, cp, tp, active)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    `INSERT INTO charlog (userId, name, level, xp, cp, tp, active, dtp, dtp_updated)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(userId,name) DO NOTHING`,
-    [targetUser.id, rawName, 3, 900, 8000, 0, true]
+    [targetUser.id, rawName, 3, 900, 8000, 0, true, 0, timestampNormal]
   );
 
   // reply (no role changes, no fund debit)
