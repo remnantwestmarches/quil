@@ -136,7 +136,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
 
   let user = ix.options.getUser("user") ?? ix.user;
   const char = ix.options.getString("name") ?? "";
-  if (!updateDTP(user, char)) {
+  if (!(await updateDTP(user, char))) {
     return ix.reply({
       flags: MessageFlags.Ephemeral,
       content: t('dtp.errors.notInSystem', { username: user.username }),
