@@ -1,6 +1,6 @@
 import { getDb } from "../db/index.js";
 
-type PlayerRow = {
+export type PlayerRow = {
   userId: string;
   name: string;
   xp: number;
@@ -12,10 +12,7 @@ type PlayerRow = {
   active: boolean;
 };
 
-export async function getPlayer(
-  userId: string,
-  name?: string
-): Promise<PlayerRow | null> {
+export async function getPlayer(userId: string, name?: string,): Promise<PlayerRow | undefined> {
   const db = getDb();
 
   // Base query
@@ -35,7 +32,7 @@ export async function getPlayer(
   }
 
   const row = await db.get<PlayerRow>(query, params);
-  return row ?? null;
+  return row;
 }
 
 export async function adjustResource(userId: string, columns: string[], values: number[], set: boolean = false, name: string = "") {
@@ -53,7 +50,7 @@ export async function adjustResource(userId: string, columns: string[], values: 
     set ? `${col} = ?` : `${col} = ${col} + ?`
   );
 
-  let query = `
+  const query = `
     UPDATE charlog
     SET ${assignments.join(", ")}
     WHERE userId = ?
@@ -62,6 +59,24 @@ export async function adjustResource(userId: string, columns: string[], values: 
 
   const params: (string | number)[] = [...values, userId];
   if (name.trim() !== "") params.push(name);
-
   await db.run(query,params);
+  return await getPlayer(userId, name)
+}
+
+export async function setActive(userId: string, name: string){
+  const db = getDb();
+
+  if (await getPlayer(userId, name)){
+    await db.run(
+      `UPDATE charlog SET active = 0 WHERE userId = ? AND name != ?`,
+      userId,
+      name
+    );
+
+    return await db.get(
+      `UPDATE charlog SET active = 1 WHERE userId = ? AND name = ?`,
+      userId,
+      name
+    );
+  }
 }

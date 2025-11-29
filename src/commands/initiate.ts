@@ -1,14 +1,10 @@
 // src/commands/initiate.ts
-import {
-  SlashCommandBuilder,
-  ChatInputCommandInteraction,
-  PermissionFlagsBits,
-  userMention,
-} from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, userMention } from 'discord.js';
 import { getDb } from '../db/index.js';
 import { t } from '../lib/i18n.js';
-import { getPlayer } from '../utils/db_queries.js';
+import { getPlayer, setActive } from '../utils/db_queries.js';
 import { CONFIG } from "../config/resolved.js";
+import { showCharacterEmbed } from '../utils/embeds.js';
 
 export const data = new SlashCommandBuilder()
   .setName('initiate')
@@ -33,21 +29,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  const duplicate = await getPlayer(targetUser.id, rawName)
-
-  if (duplicate){
+  if (await getPlayer(targetUser.id, rawName)){
     await interaction.reply({ ephemeral: true, content:
       targetUser.id === interaction.user.id
         ? 'You already have an adventurer of that name. Retire before initiating a new one.'
         : 'That user already has an adventurer of that name. Retire before initiating a new one.' });
     return;
   }
-
-  await db.get(
-    `UPDATE charlog SET active = 0 WHERE userId = ? AND name != ?`,
-    targetUser.id,
-    rawName
-  );
   
   const CFG = CONFIG.guild!.config;
   const DTP_RATE = CFG.features.dtp?.rate || 1;
@@ -62,25 +50,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     [targetUser.id, rawName, 3, 900, 8000, 0, true, 0, timestampNormal]
   );
 
-  // reply (no role changes, no fund debit)
-  await interaction.reply({
-    content: t('initiate.userGreeting', { name: userMention(targetUser.id) }),
-    embeds: [{
-      title: t('initiate.title', { name: rawName }),
-      author: { name: targetUser.displayName, icon_url: targetUser.displayAvatarURL() },
-      description: t('initiate.description', { name: rawName }),
-      fields: [
-        { name: '⬆️ Level', value: '3', inline: true },
-        { name: '💪 XP',    value: '900', inline: true },
-        { name: "\u200b", value: "\u200b", inline: true },
-        { name: '💰 GP',    value: '80.00', inline: true },
-        { name: '🎫 GT',    value: '0', inline: true },
-        { name: '🔨 DTP',    value: '0', inline: true },
-      ],
-      footer: { 
-        text: t('initiate.footer'), 
-        ...(interaction.client.user?.displayAvatarURL() ? { icon_url: interaction.client.user.displayAvatarURL() } : {})
-      },
-      color: 0x00AAFF,}],
-  });
+  await setActive(interaction.user.id, rawName)
+  showCharacterEmbed(interaction, {
+    title: t('initiate.title', { name: rawName }), 
+    desc: t('initiate.description', { name: rawName }), 
+    footer: t('initiate.footer'),
+    content: t('initiate.userGreeting', { name: userMention(targetUser.id) })
+  })
 }

@@ -99,14 +99,13 @@ export const data = new SlashCommandBuilder()
       )
   );
 
-export async function updateDTP(user: User, char: string = ""){
-  const row = await getPlayer(user.id, char)
+export async function updateDTP(user: string, char: string = ""): Promise<number|null> {
+  const row = await getPlayer(user, char)
   if (!row) { return null }
   const timestamp = Math.round(new Date().getTime() / 1000)
   const timestampNormal = timestamp - (timestamp % Math.round(86400 / DTP_RATE))
   const dtpcalc = row.dtp + ((timestampNormal - row.dtp_updated) / Math.round(86400 / DTP_RATE))
-  await adjustResource(user.id, ["dtp", "dtp_updated"], [dtpcalc, timestampNormal], true, row.name)
-  return dtpcalc
+  return (await adjustResource(user, ["dtp", "dtp_updated"], [dtpcalc, timestampNormal], true, row.name))?.dtp ?? 0
 }
 
 export async function autocomplete(interaction: AutocompleteInteraction) {
@@ -136,7 +135,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
 
   let user = ix.options.getUser("user") ?? ix.user;
   const char = ix.options.getString("name") ?? "";
-  if (!(await updateDTP(user, char))) {
+  if (!(await updateDTP(user.id, char))) {
     return ix.reply({
       flags: MessageFlags.Ephemeral,
       content: t('dtp.errors.notInSystem', { username: user.username }),
