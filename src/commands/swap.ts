@@ -15,9 +15,7 @@ export async function autocomplete(interaction: AutocompleteInteraction) {
 }
 
 export async function execute(interaction: ChatInputCommandInteraction) {
- 
   const name = interaction.options.getString('name', true).trim()
   await setActive(interaction.user.id, name)
   showCharacterEmbed(interaction, {title: `Switched Character - ${name}`})
-  
 }

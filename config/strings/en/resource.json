@@ -1,0 +1,35 @@
+{
+  "resource": {
+  "errors": {
+    "notInSystem": [
+      "{username}'s adventurer has no record.",
+      "No entry for {username}'s adventurer. Try to /initiate first.",
+      "I can't find {username}'s adventurer in the ledger."
+    ]
+  },
+
+  "add": {
+    "ok": [
+      "OK. {mention}'s adventurer: {name}: {icon} **+{amt} {resource}** \u2192 **{newAmt} {resource}**",
+      "Deposit recorded: {mention}'s adventurer: {name}: {icon} **+{amt} {resource}**. Balance **{newAmt} {resource}**",
+      "Ledger updated: {mention}'s adventurer: {name} gained **{amt} {resource}** (now **{newAmt} {resource}**)"
+    ]
+  },
+  "adjust": {
+    "ok": [
+      "OK. {mention}'s adventurer: {name}: {icon} **{sign}{amt} {resource}** \u2192 **{newAmt} {resource}**",
+      "Adjusted: {mention}'s adventurer: {name}: {icon} **{sign}{amt} {resource}**. Balance **{newAmt} {resource}**",
+      "Correction filed: {mention}'s adventurer: {name}: {icon} **{sign}{amt} {resource}** (now **{newAmt} {resource}**)"
+    ]
+  },
+  "set": {
+    "ok": [
+      "OK. {mention}'s adventurer: {name}: {icon} **+{amt} {resource}** \u2192 **{newAmt} {resource}**",
+      "Balance reset: {mention}'s adventurer: {name}: {icon} **{newAmt} {resource}** (prev {oldAmt} {resource})",
+      "Exact set recorded: {mention}'s adventurer: {name} \u2192 {icon} **{newAmt} {resource}**"
+    ]
+  },
+
+  "reasonFmt": "_({reason})_"
+}
+}
