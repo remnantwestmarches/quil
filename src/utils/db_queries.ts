@@ -1,3 +1,4 @@
+import type { SheetStory } from "../commands/library.js";
 import { getDb } from "../db/index.js";
 
 export type PlayerRow = {
@@ -11,6 +12,17 @@ export type PlayerRow = {
   dtp_updated: number;
   active: boolean;
 };
+
+export const StoryCache = {
+  stories: [] as SheetStory[],
+  genres: [] as string[],
+  titlesByGenre: new Map<string, string[]>(),
+  allTitles: [] as string[],
+};
+
+export const CharCache = {
+  charsByUser: new Map<string, string[]>(),
+}
 
 export async function getPlayer(userId: string, name?: string,): Promise<PlayerRow | undefined> {
   const db = getDb();
@@ -79,4 +91,50 @@ export async function setActive(userId: string, name: string){
       name
     );
   }
+}
+
+export async function loadStoryCacheFromDB() {
+  const db = getDb();
+  const rows = await db.all<SheetStory[]>(`SELECT * FROM library`);
+
+  StoryCache.stories = rows;
+
+  // Unique genres
+  const genres = new Set<string>();
+  const titlesByGenre = new Map<string, string[]>();
+  const allTitles: string[] = [];
+
+  for (const story of rows) {
+    genres.add(story.genre);
+    allTitles.push(story.title);
+
+    if (!titlesByGenre.has(story.genre)) {
+      titlesByGenre.set(story.genre, []);
+    }
+    titlesByGenre.get(story.genre)!.push(story.title);
+  }
+
+  StoryCache.genres = Array.from(genres).sort();
+  StoryCache.titlesByGenre = titlesByGenre;
+  StoryCache.allTitles = allTitles.sort();
+
+}
+
+export async function loadCharCacheFromDB() {
+  const db = getDb();
+  const rows = await db.all<PlayerRow[]>(`SELECT * FROM charlog`);
+
+  // Unique genres
+  
+  const charsByUser = new Map<string, string[]>();
+  
+
+  for (const player of rows) {
+    if (!charsByUser.has(player.userId)) {
+      charsByUser.set(player.userId, []);
+    }
+    charsByUser.get(player.userId)!.push(player.name);
+  }
+
+  CharCache.charsByUser = charsByUser;
 }

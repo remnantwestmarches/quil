@@ -8,6 +8,7 @@ import { CONFIG } from "../config/resolved.js";
 import { t } from "../lib/i18n.js";
 import { getPlayer } from "../utils/db_queries.js";
 import { adjustResource } from "../utils/db_queries.js";
+import { updateDTP } from "../domain/resource.js";
 
 const CFG = CONFIG.guild!.config;
 const RESOURCE_CHANNEL_ID = CFG.channels?.resourceTracking || null;
@@ -64,6 +65,15 @@ export async function execute(ix: ChatInputCommandInteraction) {
   const item = ix.options.getString("item", true).trim();
   const amountGp = ix.options.getNumber("amount", true);
   let resource = ix.options.getString("type") || "cp";
+
+  if (resource === "dtp"){
+    if (await updateDTP(user.id) == null) {
+      return ix.reply({
+        flags: MessageFlags.Ephemeral,
+        content: t('dtp.errors.notInSystem', { username: user.username }),
+      });
+    }
+  }
   
   const row = await getPlayer(user.id);
   if (row) {

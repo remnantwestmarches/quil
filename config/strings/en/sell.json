@@ -1,9 +1,9 @@
 {
 "sell": {
   "notInResourceChannel": [
-    "🪶 Wrong parchment. This belongs in the Resource channel.",
-    "🪶 Transactions are recorded in the Resource channel, not here.",
-    "🪶 Let’s keep the ledger tidy — use the Resource channel for this."
+    "🖋 Wrong parchment. This belongs in the Resource channel.",
+    "🖋 Transactions are recorded in the Resource channel, not here.",
+    "🖋 Let’s keep the ledger tidy — use the Resource channel for this."
   ],
   "errors": {
     "invalidItem": [

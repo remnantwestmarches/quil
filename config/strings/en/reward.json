@@ -2,19 +2,19 @@
 "reward": {    
     "errors": {
         "noPermission": [
-        "🪶 You don't have permission to use this.",
-        "🪶 Closed drawer. Access denied.",
-        "🪶 That's a staff-only ledger stamp."
+        "🖋 You don't have permission to use this.",
+        "🖋 Closed drawer. Access denied.",
+        "🖋 That's a staff-only ledger stamp."
         ],
         "noRecipients": [
-        "🪶 Add at least one user to reward.",
-        "🪶 I need a name to write next to the numbers.",
-        "🪶 No recipients provided. The ledger stays blank."
+        "🖋 Add at least one user to reward.",
+        "🖋 I need a name to write next to the numbers.",
+        "🖋 No recipients provided. The ledger stays blank."
         ],
         "noInputs": [
-        "🪶 Provide XP, GP, or GT (or enable GT Auto).",
-        "🪶 Nothing to award. Add values or turn on GT Auto.",
-        "🪶 Empty reward. Ink refuses to flow for zeroes."
+        "🖋 Provide XP, GP, or GT (or enable GT Auto).",
+        "🖋 Nothing to award. Add values or turn on GT Auto.",
+        "🖋 Empty reward. Ink refuses to flow for zeroes."
         ],
         "userNotInSystem": [
         "{username} is not in the system and has no recorded XP.",
@@ -27,20 +27,20 @@
         "The ledger has no entry for you yet."
         ],
         "staffNoRecipients": [
-        "🪶 Tag at least one staff member.",
-        "🪶 I need at least one staffer to receive the stipend.",
-        "🪶 No staff listed; nothing to file."
+        "🖋 Tag at least one staff member.",
+        "🖋 I need at least one staffer to receive the stipend.",
+        "🖋 No staff listed; nothing to file."
         ]
     },
 
     "common": {
         "footerReason": "🗨️ Reason: {reason}",
         "footerDash": ["—",
-    "🪶 Quil hopes there was a good reason for spilling all of this ink.",
-    "🪶 Quil reminds you to keep your receipts for tax purposes.",
-    "🪶 A small tip: store this information safely. Ink fades.",
-    "🪶 Quil's Ledger Reminder: Press hard to avoid smudging.",
-    "🪶 Quil suggests double-checking your entries for accuracy."
+    "🖋 Quil hopes there was a good reason for spilling all of this ink.",
+    "🖋 Quil reminds you to keep your receipts for tax purposes.",
+    "🖋 A small tip: store this information safely. Ink fades.",
+    "🖋 Quil's Ledger Reminder: Press hard to avoid smudging.",
+    "🖋 Quil suggests double-checking your entries for accuracy."
         ]
     },
     "announce": {
@@ -57,14 +57,14 @@
     },
     "custom": {
         "contentApplied": [
-        "🪶 Rewards applied to: {mentions}",
-        "🪶 Filed rewards for: {mentions}",
-        "🪶 Entries updated for: {mentions}"
+        "🖋 Rewards applied to: {mentions}",
+        "🖋 Filed rewards for: {mentions}",
+        "🖋 Entries updated for: {mentions}"
         ],
         "title": [
-        "🪶 Rewards Applied",
-        "🪶 Reward Ledger Update",
-        "🪶 Distribution Recorded"
+        "🖋 Rewards Applied",
+        "🖋 Reward Ledger Update",
+        "🖋 Distribution Recorded"
         ],
         "fieldHeading": "⚔️ {username}: {charName} ⚔️",
         "fieldBody": [

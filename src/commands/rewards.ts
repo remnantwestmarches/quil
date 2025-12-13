@@ -7,7 +7,6 @@ import {
   PermissionFlagsBits,
   userMention,
   MessageFlags,
-  AutocompleteInteraction,
 } from "discord.js";
 
 import { CONFIG } from "../config/resolved.js";
@@ -22,7 +21,6 @@ import {
 import { levelForXP, proficiencyFor } from "../domain/xp.js";
 
 import { t } from "../lib/i18n.js";
-import { characterAutocomplete } from "../utils/autocomplete.js";
 
 
 /* ──────────────────────────────────────────────────────────────────────────────
@@ -107,9 +105,6 @@ export const data = new SlashCommandBuilder()
 /* ──────────────────────────────────────────────────────────────────────────────
    EXECUTOR
 ────────────────────────────────────────────────────────────────────────────── */
-export async function autocomplete(interaction: AutocompleteInteraction) {
-  await characterAutocomplete(interaction);
-}
 
 export async function execute(ix: ChatInputCommandInteraction) {
   const sub = ix.options.getSubcommand() as "custom" | "dm" | "staff";
@@ -175,7 +170,7 @@ async function handleCustom(ix: ChatInputCommandInteraction) {
   const xpIn = ix.options.getInteger("xp") ?? 0;
   const gpIn = ix.options.getNumber("gp") ?? 0;
   const tpIn = ix.options.getNumber("gt") ?? 0;
-  const tpAuto = ix.options.getNumber("gt") ? false : (ix.options.getNumber("gp") || ix.options.getInteger("xp")) ? true : false;
+  const tpAuto = ix.options.getNumber("gt") != null ? false : (ix.options.getNumber("gp") || ix.options.getInteger("xp")) ? true : false;
   const reason = ix.options.getString("reason") ?? null;
 
   if (!recipients.length) {

@@ -1,14 +1,14 @@
 {
   "dm": {
     "guildOnly": [
-      "🪶 This quill only scribbles in servers, not DMs.",
-      "🪶 Server only. My ledger doesn’t travel by private courier.",
-      "🪶 Not here. Try me in a server where the records belong."
+      "🖋 This quill only scribbles in servers, not DMs.",
+      "🖋 Server only. My ledger doesn’t travel by private courier.",
+      "🖋 Not here. Try me in a server where the records belong."
     ],
     "roleMissing": [
-      "🪶 I can’t find the DM role **{role}**. Create it first, then we’ll ink the roster.",
-      "🪶 Role missing: **{role}**. No role, no tidy list.",
-      "🪶 The DM role **{role}** doesn’t exist. Please file it into existence."
+      "🖋 I can’t find the DM role **{role}**. Create it first, then we’ll ink the roster.",
+      "🖋 Role missing: **{role}**. No role, no tidy list.",
+      "🖋 The DM role **{role}** doesn’t exist. Please file it into existence."
     ],
     "list": {
       "title": [
@@ -25,9 +25,9 @@
     },
     "toggle": {
       "notAllowed": [
-        "🪶 You don’t have permission to toggle DM availability.",
-        "🪶 That switch isn’t for you. Ask Staff or a GM.",
-        "🪶 Closed drawer. Only Staff/GMs can flip this one."
+        "🖋 You don’t have permission to toggle DM availability.",
+        "🖋 That switch isn’t for you. Ask Staff or a GM.",
+        "🖋 Closed drawer. Only Staff/GMs can flip this one."
       ],
       "enabled": [
         "{user} is now available to DM. I’ve noted it neatly.",

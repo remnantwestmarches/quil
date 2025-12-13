@@ -1,21 +1,21 @@
 {
     "retire": {
     "noAdventurer": [
-        "🪶 Can’t retire what’s not recorded. **{name}** isn’t in the ledger.",
-        "🪶 No entry found for **{name}**. Maybe they never existed?",
-        "🪶 The quill searches but finds no record of **{name}**. Are you sure they were ever here?",
-        "🪶 I flipped through the pages, but **{name}** is nowhere to be found. Ghosts don’t get archived.",
-        "🪶 No active adventurer record for **{name}**. Perhaps they were a figment of your imagination?"
+        "🖋 Can’t retire what’s not recorded. **{name}** isn’t in the ledger.",
+        "🖋 No entry found for **{name}**. Maybe they never existed?",
+        "🖋 The quill searches but finds no record of **{name}**. Are you sure they were ever here?",
+        "🖋 I flipped through the pages, but **{name}** is nowhere to be found. Ghosts don’t get archived.",
+        "🖋 No active adventurer record for **{name}**. Perhaps they were a figment of your imagination?"
     ],
     "cancelled": [
-        "🪶 Retirement cancelled. The ink remains fresh.",
-        "🪶 Parchment intact. No changes made.",
-        "🪶 Quill rests. No retirement recorded.",
-        "🪶 Ledger unchanged. Retirement aborted.",
-        "🪶 The page stays open. Retirement not processed."
+        "🖋 Retirement cancelled. The ink remains fresh.",
+        "🖋 Parchment intact. No changes made.",
+        "🖋 Quill rests. No retirement recorded.",
+        "🖋 Ledger unchanged. Retirement aborted.",
+        "🖋 The page stays open. Retirement not processed."
     ],
     "confirmLabel": [
-        "🪶 Type RETIRE to confirm."
+        "🖋 Type RETIRE to confirm."
     ],
     "title": [
       "Closing the Ledger: {name}",
@@ -25,11 +25,11 @@
       "Record Sealed: {name}"
     ],
     "userNotice": [
-      "🪶 I’ve archived: **{name}**’s character sheet below for your records.",
-      "🪶 For posterity: **{name}**’s final sheet is attached below.",
-      "🪶 The complete record for: **{name}** final sheet has been preserved below.",
-      "🪶 Archival copy of: **{name}**’s sheet is included for your ledger.",
-      "🪶 Filed under ‘Retired’: **{name}**. See the embed below."
+      "🖋 I’ve archived: **{name}**’s character sheet below for your records.",
+      "🖋 For posterity: **{name}**’s final sheet is attached below.",
+      "🖋 The complete record for: **{name}** final sheet has been preserved below.",
+      "🖋 Archival copy of: **{name}**’s sheet is included for your ledger.",
+      "🖋 Filed under ‘Retired’: **{name}**. See the embed below."
     ],
     "description": [
       "With a neat stroke, I mark **{name}** as retired. The adventures don’t disappear—they simply settle into the margins where legends live. Thank you for the stories; I’ll keep the record legible.",
@@ -40,11 +40,11 @@
       "All columns balanced and the signature set: **{name}** retires with dignity. The story holds, the math checks, the memories stay crisp. I’ll be here when the next name arrives."
     ],
     "footer": [
-      "🪶 Quil — Archive complete, margins immaculate.",
-      "🪶 Logged by Quil — Another chapter shelved with care.",
-      "🪶 Quil — Where endings are tidy and legends are footnoted.",
-      "🪶 Filed by Quil — Page turned, ledger balanced.",
-      "🪶 Quil — The ink rests; the story doesn’t."
+      "🖋 Quil — Archive complete, margins immaculate.",
+      "🖋 Logged by Quil — Another chapter shelved with care.",
+      "🖋 Quil — Where endings are tidy and legends are footnoted.",
+      "🖋 Filed by Quil — Page turned, ledger balanced.",
+      "🖋 Quil — The ink rests; the story doesn’t."
     ]
   }
 }

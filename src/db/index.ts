@@ -116,6 +116,22 @@ export async function migrateDb(dbFile = DEFAULT_DB) {
     ALTER TABLE charlog
     ADD COLUMN dtp_updated INTEGER NOT NULL DEFAULT ${ timestampNormal };
   `);}
+  // add library table
+  const migrate_check4 = await db.get(`SELECT * FROM pragma_table_info('library') WHERE name = 'title';`);
+  if (!migrate_check4) {await db.exec(`
+    PRAGMA journal_mode = WAL;
+    PRAGMA synchronous = NORMAL;
+    PRAGMA foreign_keys = ON;
+    PRAGMA busy_timeout = 5000;
+    PRAGMA wal_autocheckpoint = 1000;
+
+    CREATE TABLE IF NOT EXISTS library (
+      title TEXT,
+      genre   TEXT NOT NULL,
+      content  TEXT NOT NULL,
+      PRIMARY KEY (title)
+    );
+  `);}
 
   console.log(`📂 Database migrations done: ${dbFile}`);
   return db;

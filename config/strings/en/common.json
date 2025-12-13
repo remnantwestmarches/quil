@@ -7,37 +7,37 @@
   "brand.botLongDescription": "I keep track of your gold and resources, with a dash of sarcasm for flavor. Use me wisely, adventurer.",
   "common": {
     "notInResourceChannel": [
-      "🪶 Wrong parchment. This belongs in the Resource channel.",
-      "🪶 My ink only flows in the Resource channel. Try again there.",
-      "🪶 Let’s keep the ledger tidy — use the Resource channel for this.",
-      "🪶 Misfiled. Take this to the Resource channel, please.",
-      "🪶 The ledger isn’t portable. Head to the Resource channel.",
-      "🪶 This page isn’t for transactions. Resource channel, if you would.",
-      "🪶 I refuse to blot the margins here. Resource channel only.",
-      "🪶 Proper filings go in the Resource channel. I don’t make the rules (I do).",
-      "🪶 Wrong desk. Resource channel is the counter you want.",
-      "🪶 Transactions are recorded in the Resource channel, not here.",
-      "🪶 Neat columns live in the Resource channel. Shoo.",
-      "🪶 Take it to the Resource channel before the ink sours."
+      "🖋 Wrong parchment. This belongs in the Resource channel.",
+      "🖋 My ink only flows in the Resource channel. Try again there.",
+      "🖋 Let’s keep the ledger tidy — use the Resource channel for this.",
+      "🖋 Misfiled. Take this to the Resource channel, please.",
+      "🖋 The ledger isn’t portable. Head to the Resource channel.",
+      "🖋 This page isn’t for transactions. Resource channel, if you would.",
+      "🖋 I refuse to blot the margins here. Resource channel only.",
+      "🖋 Proper filings go in the Resource channel. I don’t make the rules (I do).",
+      "🖋 Wrong desk. Resource channel is the counter you want.",
+      "🖋 Transactions are recorded in the Resource channel, not here.",
+      "🖋 Neat columns live in the Resource channel. Shoo.",
+      "🖋 Take it to the Resource channel before the ink sours."
     ],
     "notInChannel": [
-      "🪶 Wrong parchment. This belongs in {channel}.",
-      "🪶 My ink only flows in {channel}. Try again there.",
-      "🪶 Let’s keep the ledger tidy — use {channel} for this.",
-      "🪶 Misfiled. Take this to {channel}, please.",
-      "🪶 The ledger isn’t portable. Head to {channel}.",
-      "🪶 This page isn’t for transactions. {channel}, if you would.",
-      "🪶 I refuse to blot the margins here. {channel} only.",
-      "🪶 Proper filings go in {channel}. I don’t make the rules (I do).",
-      "🪶 Wrong desk. {channel} is the counter you want.",
-      "🪶 Transactions are recorded in {channel}, not here.",
-      "🪶 Neat columns live in {channel}. Shoo.",
-      "🪶 Take it to {channel} before the ink sours."
+      "🖋 Wrong parchment. This belongs in {channel}.",
+      "🖋 My ink only flows in {channel}. Try again there.",
+      "🖋 Let’s keep the ledger tidy — use {channel} for this.",
+      "🖋 Misfiled. Take this to {channel}, please.",
+      "🖋 The ledger isn’t portable. Head to {channel}.",
+      "🖋 This page isn’t for transactions. {channel}, if you would.",
+      "🖋 I refuse to blot the margins here. {channel} only.",
+      "🖋 Proper filings go in {channel}. I don’t make the rules (I do).",
+      "🖋 Wrong desk. {channel} is the counter you want.",
+      "🖋 Transactions are recorded in {channel}, not here.",
+      "🖋 Neat columns live in {channel}. Shoo.",
+      "🖋 Take it to {channel} before the ink sours."
     ],
     "noActiveChar": [
-      "🪶 Sorry, there's no active character for {user}. Be sure they've been initiated.",
-      "🪶 {user} has no active character. They need to /initiate first.",
-      "🪶 No active character found for {user}. Try /initiate."
+      "🖋 Sorry, there's no active character for {user}. Be sure they've been initiated.",
+      "🖋 {user} has no active character. They need to /initiate first.",
+      "🖋 No active character found for {user}. Try /initiate."
     ]
   },    
   "errors": {

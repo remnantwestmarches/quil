@@ -19,6 +19,18 @@ interface embedOptions{
   fields?: APIEmbedField[]
 }
 
+export function chunkString(text: string, maxLength: number): string[] {
+  const chunks: string[] = [];
+  let start = 0;
+
+  while (start < text.length) {
+    chunks.push(text.slice(start, start + maxLength));
+    start += maxLength;
+  }
+
+  return chunks;
+}
+
 async function collectUsers(ix: ChatInputCommandInteraction, multi: boolean, max = 10): Promise<PlayerRow[]> {
   const users: PlayerRow[] = [];
   if (multi) {

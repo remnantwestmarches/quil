@@ -6,14 +6,15 @@ import {
   userMention,
   AutocompleteInteraction,
   SlashCommandSubcommandBuilder,
+  type APIEmbedField,
 } from "discord.js";
 import { CONFIG } from "../config/resolved.js";
 import { t } from "../lib/i18n.js";
 import { validateCommandPermissions } from "../config/validaters.js";
 import { adjustResource, getPlayer } from "../utils/db_queries.js";
-import { characterAutocomplete } from "../utils/autocomplete.js";
 import { updateDTP } from "../domain/resource.js";
 import { showCharacterEmbed } from "../utils/embeds.js";
+import { announceLevelChange, bandFor, levelForXP, proficiencyFor } from "../domain/xp.js";
 
 const CFG = CONFIG.guild!.config;
 const ROLE = CFG.roles;
@@ -25,7 +26,6 @@ const PERMS = {
 };
 const DTP_CHANNEL_ID = CFG.channels?.dtpTracking || null;
 const RESOURCE_CHANNEL_ID = CFG.channels?.resourceTracking || null;
-const DTP_RATE = CFG.features.dtp?.rate || 1;
 const toCp = (gp: number) => Math.round(gp * 100);
 const toGp = (cp: number) => (cp / 100).toFixed(2);
 const resourceMapping: { [id: string]: [string, string]; } = {"cp":["GP","💰"], "tp":["GT","🎫"], "dtp":["DTP","🔨"], "xp":["XP","💪"]}
@@ -96,10 +96,6 @@ export const data = new SlashCommandBuilder()
         .setMinValue(0))
   ));
 
-export async function autocomplete(interaction: AutocompleteInteraction) {
-  await characterAutocomplete(interaction);
-}
-
 export async function execute(ix: ChatInputCommandInteraction) {
   const sub = ix.options.getSubcommand();
   const member = ix.member as GuildMember | null;
@@ -128,7 +124,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
   }
 
   if (resource === "dtp"){
-    if (!(await updateDTP(user.id, char))) {
+    if (await updateDTP(user.id, char) == null) {
       return ix.reply({
         flags: MessageFlags.Ephemeral,
         content: t('dtp.errors.notInSystem', { username: user.username }),
@@ -151,11 +147,29 @@ export async function execute(ix: ChatInputCommandInteraction) {
   else if (resource === "xp") { res = row.xp }
 
   if (sub === "show") {
+    let fields: APIEmbedField[] = []
+    if (resource === "xp"){
+      const level = levelForXP(row.xp);
+      const { curr, next } = bandFor(level);
+      const nextDisp = next === null ? "—" : `${next.toLocaleString()} XP (to L${level + 1})`;
+      const pct = next === null ? 100 : Math.floor(((row.xp - curr) / (next - curr)) * 100);
+      const pctStr = next === null
+        ? t("xp.show.fields.max")
+        : t("xp.show.progressFmt", { pct, curr: (row.xp - curr).toLocaleString(), range: (next - curr).toLocaleString() });
+      fields =  [
+        { name: t("xp.show.fields.level"), value: `**${level}**`, inline: true },
+        { name: t("xp.show.fields.xp"),    value: row.xp.toLocaleString(), inline: true },
+        { name: t("xp.show.fields.prof"),  value: `+${proficiencyFor(level)}`, inline: true },
+        { name: t("xp.show.fields.next"),  value: nextDisp, inline: false },
+        { name: t("xp.show.fields.progress"), value: pctStr, inline: false }
+      ]
+    }
+    else { 
+      fields = [{ name: `${resourceMapping[resource]?.[1]} ${resourceMapping[resource]?.[0]}`, value: `**${resource === "cp" ? toGp(res) : res}**`, inline: false }]
+    } 
     showCharacterEmbed(ix, {
       title: `${row.name} — Resource Overview`,
-      fields: [
-        { name: `${resourceMapping[resource]?.[1]} ${resourceMapping[resource]?.[0]}`, value: `**${resource === "cp" ? toGp(res) : res}**`, inline: false }
-      ],
+      fields: fields,
       footer: reason ? `Reason: ${reason}` : t('initiate.footer')
     })
     return;
@@ -164,14 +178,20 @@ export async function execute(ix: ChatInputCommandInteraction) {
   let set = false
   if (sub === "set") { set = true }
 
-  const next = await adjustResource(user.id, [resource], [amt], set, row.name);
+  const next = await adjustResource(user.id, [resource], [resource === "cp" ? toCp(amt) : amt], set, row.name);
   if (next){
     let resNew = next.cp
     if (resource === "tp") { resNew = next.tp }
     else if (resource === "dtp") { resNew = next.dtp }
     else if (resource === "tp") { resNew = next.tp }
     else if (resource === "xp") { 
-      resNew = next.xp 
+      resNew = next.xp
+      const levelNew = levelForXP(next.xp);
+      const changed = levelNew - row.level;
+      if (changed !== 0) {
+        await adjustResource(user.id, ["level"], [levelNew], true, next.name);
+        await announceLevelChange(ix, next.name, levelNew, changed, proficiencyFor(levelNew));
+      }
       //level up stuff
     }
     showCharacterEmbed(ix, {
@@ -184,7 +204,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
             name: next.name, 
             amt: amt,
             resource: resourceMapping[resource]?.[0] ?? "",
-            newAmt: resNew,
+            newAmt: `${resource === "cp" ? toGp(resNew) : resNew}`,
             oldAmt: res,
             icon: resourceMapping[resource]?.[1] ?? "",
             sign: amt >= 0 ? "+" : "",

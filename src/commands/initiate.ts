@@ -2,7 +2,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, userMention } from 'discord.js';
 import { getDb } from '../db/index.js';
 import { t } from '../lib/i18n.js';
-import { getPlayer, setActive } from '../utils/db_queries.js';
+import { getPlayer, loadCharCacheFromDB, setActive } from '../utils/db_queries.js';
 import { CONFIG } from "../config/resolved.js";
 import { showCharacterEmbed } from '../utils/embeds.js';
 
@@ -57,4 +57,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     footer: t('initiate.footer'),
     content: t('initiate.userGreeting', { name: userMention(targetUser.id) })
   })
+
+  loadCharCacheFromDB();
 }

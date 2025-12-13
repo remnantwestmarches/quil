@@ -2,39 +2,39 @@
     "lfg": {
         "errors": {
             "unknownTier": [
-                "🪶 I don't recognize that tier. Try low, mid, high, epic, pbp, or auto.",
-                "🪶 Unknown tier. The ledger prefers real categories.",
-                "🪶 That tier isn't in my index. Choose a listed option."
+                "🖋 I don't recognize that tier. Try low, mid, high, epic, pbp, or auto.",
+                "🖋 Unknown tier. The ledger prefers real categories.",
+                "🖋 That tier isn't in my index. Choose a listed option."
             ],
             "couldNotDetermineLevel": [
-                "🪶 I couldn’t determine your level from the records. Have you run `/initiate` yet?",
-                "🪶 No level on file. Initiate your character before using auto tier.",
-                "🪶 The ledger is blank for your level. Try `/initiate` first."
+                "🖋 I couldn’t determine your level from the records. Have you run `/initiate` yet?",
+                "🖋 No level on file. Initiate your character before using auto tier.",
+                "🖋 The ledger is blank for your level. Try `/initiate` first."
             ],
             "alreadyInTier": [
-                "🪶 You’re already LFG in **{tier}**.",
-                "🪶 **{tier}** is already active for you.",
-                "🪶 Duplicate filing: **{tier}** is on."
+                "🖋 You’re already LFG in **{tier}**.",
+                "🖋 **{tier}** is already active for you.",
+                "🖋 Duplicate filing: **{tier}** is on."
             ],
             "notOnBoard": [
-                "🪶 You’re not currently on the LFG board.",
-                "🪶 No entry found for you on the LFG board.",
-                "🪶 The board has no listing for you."
+                "🖋 You’re not currently on the LFG board.",
+                "🖋 No entry found for you on the LFG board.",
+                "🖋 The board has no listing for you."
             ],
             "notInTier": [
-                "🪶 You’re not LFG in **{tier}**.",
-                "🪶 No **{tier}** listing to remove.",
-                "🪶 You weren’t marked for **{tier}**."
+                "🖋 You’re not LFG in **{tier}**.",
+                "🖋 No **{tier}** listing to remove.",
+                "🖋 You weren’t marked for **{tier}**."
             ],
             "notAllowed": [
-                "🪶 You don’t have permission to use this.",
-                "🪶 Closed drawer. You lack access for that action.",
-                "🪶 That’s a staff-only function."
+                "🖋 You don’t have permission to use this.",
+                "🖋 Closed drawer. You lack access for that action.",
+                "🖋 That’s a staff-only function."
             ],
             "useRemoveAllHint": [
-                "🪶 To clear everything, use `/lfg remove tier:all`.",
-                "🪶 For a clean slate, run `/lfg remove tier:all`.",
-                "🪶 Wipe all tiers with `/lfg remove tier:all`."
+                "🖋 To clear everything, use `/lfg remove tier:all`.",
+                "🖋 For a clean slate, run `/lfg remove tier:all`.",
+                "🖋 Wipe all tiers with `/lfg remove tier:all`."
             ]
             },
         "toggle": {
@@ -84,14 +84,14 @@
 
         "list": {
             "posted": [
-            "🪶 LFG board updated.",
-            "🪶 Board refreshed.",
-            "🪶 New board posted."
+            "🖋 LFG board updated.",
+            "🖋 Board refreshed.",
+            "🖋 New board posted."
             ],
             "notAllowedToPost": [
-            "🪶 You’re not allowed to post the sticky board.",
-            "🪶 Board posting is limited to moderators/admins.",
-            "🪶 That posting stamp is for staff."
+            "🖋 You’re not allowed to post the sticky board.",
+            "🖋 Board posting is limited to moderators/admins.",
+            "🖋 That posting stamp is for staff."
             ]
         },
         "purge": {
@@ -103,7 +103,7 @@
             "resultNone": [
             "There are no entries older than **{days}** day(s) ({scope}).",
             "Nothing to purge (> **{days}** days, {scope}).",
-            "🪶 Clean ledger — no entries exceed **{days}** day(s) ({scope})."
+            "🖋 Clean ledger — no entries exceed **{days}** day(s) ({scope})."
             ],
             "suffixOne": "y",
             "suffixMany": "ies"

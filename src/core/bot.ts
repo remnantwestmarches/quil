@@ -17,7 +17,8 @@ import { initDb } from "../db/index.js";
 
 import * as retire from "../commands/retire.js";
 import { t } from "../lib/i18n.js";
-import { autocomplete } from "../commands/charinfo.js";
+import { loadCharCacheFromDB, loadStoryCacheFromDB } from "../utils/db_queries.js";
+import { autocomplete } from "../utils/autocomplete.js";
 
 // figure out if we're executing from dist or src
 
@@ -162,6 +163,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
 client.once(Events.ClientReady, async () => {
   await loadCommands();
   await initDb();
+  await loadCharCacheFromDB();
+  await loadStoryCacheFromDB();
   console.log(
     `Ready as ${client.user?.tag}. Guild: ${guildId} (${guildCfg.name})`
   );
