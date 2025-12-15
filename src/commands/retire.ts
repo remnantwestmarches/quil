@@ -13,7 +13,7 @@ import { getDb } from '../db/index.js';
 
 import { CONFIG } from '../config/resolved.js';
 import { t } from '../lib/i18n.js';
-import { getPlayer } from '../utils/db_queries.js';
+import { getPlayer, loadCharCacheFromDB } from '../utils/db_queries.js';
 
 export const data = new SlashCommandBuilder()
   .setName('retire')
@@ -22,8 +22,9 @@ export const data = new SlashCommandBuilder()
     o.setName('user')
      .setDescription('Target user to retire (Mod+ only).')
      .setRequired(false))
-  .addStringOption(o => o.setName('character').setDescription('character to retire').setRequired(false))
+  .addStringOption(o => o.setName('character').setDescription('character to retire').setRequired(false).setAutocomplete(true))
   .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages)
+
 
 // We’ll register an event listener in execute() for the modal submit.
 export async function execute(interaction: ChatInputCommandInteraction) {
@@ -152,4 +153,6 @@ export async function handleModal(interaction: ModalSubmitInteraction) {
         color: 0xFF0000,
     }]
   });
+  
+  loadCharCacheFromDB();
 }

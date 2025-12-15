@@ -1,4 +1,7 @@
+import type { ChatInputCommandInteraction } from "discord.js";
 import advancement from "../../config/advancement.json" with { type: "json" };
+import { CONFIG } from "../config/resolved.js";
+import { t } from "../lib/i18n.js";
 
 export type AdvancementRow = { level: number; xp: number; proficiency: number };
 export type AdvancementTable = {
@@ -7,6 +10,8 @@ export type AdvancementTable = {
 };
 
 const table = advancement as AdvancementTable;
+const CFG = CONFIG.guild!.config;
+const REWARDS_CHANNEL_ID = CFG.channels?.resourceTracking || null;
 
 // Sanity: ensure levels sorted ascending by XP and level
 table.levels.sort((a, b) => a.xp - b.xp);
@@ -73,4 +78,24 @@ export function applyXP(
 
 function clampLevel(level: number): number {
   return Math.min(Math.max(1, Math.floor(level)), table.maxLevel);
+}
+
+export async function announceLevelChange(
+  ix: ChatInputCommandInteraction,
+  displayName: string,
+  newLevel: number,
+  diff: number,
+  newProf: number
+) {
+  const msg = diff > 0  ? t('xp.announce.levelUp', { display: displayName, level: newLevel, prof: newProf }) 
+                        : t('xp.announce.levelDown', { display: displayName, level: newLevel });
+
+  const guild = ix.guild;
+  const target =
+    (guild && REWARDS_CHANNEL_ID && guild.channels.cache.get(REWARDS_CHANNEL_ID)) ||
+    ix.channel;
+
+  console.log(msg)
+  // @ts-expect-error (text channel narrowing omitted)
+  await target?.send(msg);
 }
