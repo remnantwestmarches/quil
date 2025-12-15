@@ -9,11 +9,9 @@ export async function autocomplete(
   let cache: string[] = []
 
   if (focusedOption.name === 'genre'){
-    console.log("autocomplete genre")
     cache = StoryCache.genres
   }
   else if (focusedOption.name === 'title'){
-    console.log("autocomplete title")
     const genre = interaction.options.getString('genre');
     cache = genre ? StoryCache.titlesByGenre.get(genre) ?? [] : StoryCache.allTitles ?? []
   }

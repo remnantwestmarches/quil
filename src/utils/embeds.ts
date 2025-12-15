@@ -110,20 +110,5 @@ export async function showCharacterEmbed(interaction: ChatInputCommandInteractio
 }
 
 export async function buildMultiEmbed(interaction: ChatInputCommandInteraction){
-    await interaction.reply({embeds: [
-      new EmbedBuilder()
-        .setColor(0x0099ff) // set to brand color
-        .setThumbnail(user.displayAvatarURL())
-        .setTitle(`Character — ${row.name}`)
-        .setDescription("OOC Owner: " + user.toString())
-        .addFields(
-          { name: 'Level', value: "⭐ " + String(row.level), inline: true },
-          { name: 'Experience (XP)', value:"💪 " + String(row.xp), inline: true },
-          { name: "\u200b", value: "\u200b", inline: true },
-          { name: 'Gold Pieces (GP)', value: "💰 " + gp, inline: true },
-          { name: 'Golden Tickets (GT)', value: "🎫 " + tp, inline: true },
-          { name: 'Downtime (DTP)', value: "🔨 " + dtp, inline: true },
-        )
-        .setFooter({ text: "Requested via " + caller.displayName, iconURL: caller.displayAvatarURL() })
-  ]});
+    
 }
