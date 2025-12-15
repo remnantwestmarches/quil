@@ -115,7 +115,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
   const isInConfiguredGuild = ix.guildId === CONFIG.guild?.id;
   if (resource === "dtp") {isInAllowedChannel = isInAllowedChannel || ix.channelId === DTP_CHANNEL_ID}
 
-  if (!isInAllowedChannel && isInConfiguredGuild) {
+  if (!isInAllowedChannel && isInConfiguredGuild && sub === "show") {
     await ix.reply({
       flags: MessageFlags.Ephemeral,
       content: t('sell.notInResourceChannel'),
