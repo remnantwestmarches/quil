@@ -98,6 +98,7 @@ export const data = new SlashCommandBuilder()
     sc
       .setName("dm")
       .setDescription("Claim DM reward for yourself based on your character level.")
+      .addBooleanOption((o) => o.setName("half").setDescription("Grant half the usual DM rewards").setRequired(false))
       .addStringOption((o) => o.setName("reason").setDescription("Why? (optional)").setMaxLength(200))
   )
 
@@ -242,6 +243,7 @@ async function handleCustom(ix: ChatInputCommandInteraction) {
 /* DM: invoker claims bracketed DM reward for self */
 async function handleDm(ix: ChatInputCommandInteraction) {
   const u = ix.user;
+  const half = ix.options.getBoolean("half") ?? false;
   const reason = ix.options.getString("reason") ?? null;
 
   const before = await getPlayer(u.id,"");
@@ -252,7 +254,7 @@ async function handleDm(ix: ChatInputCommandInteraction) {
 
   const level = levelForXP(before.xp);
 
-  const delta = computeDmReward(level);
+  const delta = computeDmReward(level, half);
   const next = applyResourceDeltas(before, delta);
   adjustResource(u.id, ["cp","tp","xp","level"], [next.cp,next.tp,next.xp,next.level], true, before.name)
 

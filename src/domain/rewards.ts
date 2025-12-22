@@ -46,11 +46,12 @@ export function computeCustomReward(input: { xp?: number; gp?: number; tp?: numb
 }
 
 // DM self-claim: read exact values from dmrewards.json for the active character level.
-export function computeDmReward(level: number): ResourceDelta {
+export function computeDmReward(level: number, half: boolean): ResourceDelta {
   const rec = getDmRow(level);
-  const xp = Math.max(0, Math.floor(rec.xp));
-  const cp = Math.max(0, Math.round(rec.gp * 100)); // GP → cp
-  const tp = Math.max(0, Number(rec.tp));           // as-is
+  const mult = half ? 0.5 : 1;
+  const xp = Math.round(Math.max(0, Math.floor(rec.xp) * mult));
+  const cp = Math.round(Math.max(0, Math.round(rec.gp * 100) * mult)); // GP → cp
+  const tp = Math.round(Math.max(0, Number(rec.tp) * mult));           // as-is
   return { xp, cp, tp };
 }
 

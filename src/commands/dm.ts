@@ -47,7 +47,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     // If you want looser rules, remove this check.
     const member = await guild.members.fetch(interaction.user.id);
     const canToggle = member.permissions.has(PermissionFlagsBits.KickMembers)
-      || member.roles.cache.some(r => ['GM', 'GMs', 'Staff'].includes(r.name));
+      || member.roles.cache.some(r => ['DM', 'Crew'].includes(r.name));
     if (!canToggle) {
       return interaction.reply({ content: t('dm.toggle.notAllowed'), ephemeral: true });
     }
