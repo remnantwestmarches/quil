@@ -40,6 +40,9 @@ npm run deploy:dev
 
 # start in dev (tsx watcher)
 npm run dev
+
+# run tests (optional)
+npm test
 ```
 
 If successful, the console should log a ready message for the bot (e.g. "Ready! Logged in as <bot#tag>").
@@ -48,8 +51,8 @@ If successful, the console should log a ready message for the bot (e.g. "Ready! 
 
 ## 🎯 Features
 
-- **Character Management**: Track XP, levels, CP (Copper Pieces), GP (Gold Pieces), and GT (Guild Tokens)
-- **Resource Trading**: Buy and sell items with integrated economy system
+- **Character Management**: Track XP, levels, CP (Copper Pieces), GP (Gold Pieces), GT (Guild Tokens), DTP (Downtime Points), and CC (Crew Coins)
+- **Resource Trading**: Multi-resource purchases and sales with integrated economy system
 - **Looking for Group (LFG)**: Organize D&D sessions by tier and availability
 - **DM Tools**: Toggle DM availability and manage guild operations
 - **Guild Fund**: Collaborative resource pooling for guild activities
@@ -67,6 +70,7 @@ If successful, the console should log a ready message for the bot (e.g. "Ready! 
 - [🎭 Personality Guide](./docs/PERSONALITY.md)
 - [🔧 Configuration](./docs/CONFIG.md)
 - [💬 Strings & Localization](./docs/STRINGS.md)
+- [🧪 Testing Guide](./tests/README.md)
 
 ---
 
@@ -77,6 +81,7 @@ If successful, the console should log a ready message for the bot (e.g. "Ready! 
 - **Database**: SQLite with better-sqlite3 for fast local storage
 - **Configuration**: Zod validation with dotenv for environment management
 - **Code Quality**: ESLint + Prettier with TypeScript-ESLint
+- **Testing**: Vitest with in-memory SQLite for unit and integration tests
 - **Development**: tsx for hot reloading and seamless TypeScript execution
 - **Deployment**: Systemd services with automatic restarts and logging
 
@@ -89,6 +94,17 @@ If successful, the console should log a ready message for the bot (e.g. "Ready! 
 - Node.js 20+ LTS
 - npm 9+
 - A Discord application with bot token
+
+### Testing
+
+```powershell
+npm test              # Run all tests
+npm run test:watch    # Watch mode
+npm run test:ui       # Visual test UI
+npm run test:coverage # Coverage report
+```
+
+See [tests/README.md](./tests/README.md) for detailed testing guide.
 
 ### Contributing
 

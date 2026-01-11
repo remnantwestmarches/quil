@@ -16,7 +16,6 @@ export async function autocomplete(
     cache = genre ? StoryCache.titlesByGenre.get(genre) ?? [] : StoryCache.allTitles ?? []
   }
   else{
-    console.log("autocomplete char")
     let userField = 'user'
     const match = focusedOption.name.match(/^char(\d+)$/)
     if (match){

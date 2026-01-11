@@ -41,7 +41,7 @@ export async function purgeLfgBefore(guildId: string, olderThanMs: number, scope
   const db = await getDb();
   const clause = scope === "pbp"
     ? `AND pbp = 1`
-    : ``;
+    : `AND (low = 1 OR mid = 1 OR high = 1 OR epic = 1)`;
   const rows = await db.all<{ userId: string }[]>(
     `SELECT userId FROM lfg_status WHERE guildId = ? AND startedAt < ? ${clause}`,
     guildId, olderThanMs

@@ -22,14 +22,24 @@
             "Quil prefers cents, not dust. Two decimals, please."
             ],
             "noFunds": [
-            "Your coin purse is lighter than a feather. Insufficient funds.",
-            "Not enough GP for that purchase. The ledger frowns.",
-            "Balance too low. Consider selling something shiny first."
+            "Insufficient {resources}. Your coin purse is lighter than a feather.",
+            "Not enough {resources} for that purchase. The ledger frowns.",
+            "Balance too low for {resources}. Consider selling something shiny first."
             ],
             "noPlayerRecord": [
             "Hi {user}, I can’t find your character log. Please `/initiate` first, then try again.",
             "No ledger entry for you yet, {user}. Initiate your character to record purchases.",
             "I don’t see a record for {user}. Get initiated and we’ll ink the purchase."
+            ],
+            "noResourceSpecified": [
+            "You must specify at least one resource to spend. Try `/buy item:<name> gp:<amount>`.",
+            "I can't log a purchase without knowing what you're spending. Specify GP, GT, DTP, or CC.",
+            "The ledger requires actual coin. Please provide at least one resource amount."
+            ],
+            "ccCrewOnly": [
+            "Crew Coins are reserved for crew members and above. You don't have access to that ledger.",
+            "CC is a crew-level resource. Only crew members and above may use it.",
+            "My quill refuses to ink CC transactions for non-crew. Crew rank required."
             ]
         },
         "purchaseSuccess": [
@@ -41,6 +51,11 @@
             "Purchase complete, {name}: **{item}** for {icon} **{amount} {resource}**. New total: **{newValue} {resource}**.",
             "Logged {name}: **{item}** bought for {icon} **{amount} {resource}**. Balance now **{newValue} {resource}**.",
             "Ledger updated {name} — **{item}** purchased ({icon} **{amount} {resource}**). Remaining {resource}: **{newValue}**."
+        ],
+        "purchaseSuccessMulti": [
+            "Purchase complete, {name}: **{item}** for {cost}. New balance: {balance}.",
+            "Logged {name}: **{item}** bought for {cost}. Remaining: {balance}.",
+            "Ledger updated {name} — **{item}** purchased ({cost}). Balance: {balance}."
         ],
         "reasonFmt": " _({reason})_"
     }

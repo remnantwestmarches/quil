@@ -6,7 +6,7 @@ import {
 } from "discord.js";
 import { CONFIG } from "../config/resolved.js";
 import { t } from "../lib/i18n.js";
-import { getPlayer } from "../utils/db_queries.js";
+import { getPlayer, getPlayerCC } from "../utils/db_queries.js";
 import { adjustResource } from "../utils/db_queries.js";
 import { updateDTP } from "../domain/resource.js";
 
@@ -17,11 +17,11 @@ const MAGIC_ITEMS_CHANNEL_ID = CFG.channels?.magicItems || null;
 // helpers
 const toCp = (gp: number) => Math.round(gp * 100);
 const toGp = (cp: number) => (cp / 100).toFixed(2);
-const resourceMapping: { [id: string]: [string, string]; } = {"cp":["GP","💰"], "tp":["GT","🎫"], "dtp":["DTP","🔨"], "xp":["XP","💪"]}
+const resourceMapping: { [id: string]: [string, string]; } = {"cp":["GP","💰"], "tp":["GT","🎫"], "dtp":["DTP","🔨"], "cc":["CC","🪙"], "xp":["XP","💪"]}
 
 export const data = new SlashCommandBuilder()
   .setName("buy")
-  .setDescription("Buy an item for GP or GT and record it to the resource log.")
+  .setDescription("Buy an item for GP, GT, and/or DTP and record it to the resource log.")
   .addStringOption((opt) =>
     opt
       .setName("item")
@@ -30,24 +30,31 @@ export const data = new SlashCommandBuilder()
   )
   .addNumberOption((opt) =>
     opt
-      .setName("amount")
-      .setDescription("Sale price in GP|GT|DTP (must be > 0)")
-      .setRequired(true)
+      .setName("gp")
+      .setDescription("GP (Gold Pieces) to spend")
       .setMinValue(0)
   )
-  .addStringOption((opt) =>
+  .addNumberOption((opt) =>
     opt
-      .setName("type")
-      .setDescription("Is this purchase to be made with GT or DTP? (Default: GP)")
-      .setRequired(false)
-      .addChoices(
-        { name: "GP (Gold Pieces)", value: "cp" },
-        { name: "GT (Golden Tickets)", value: "tp" },
-        { name: "DTP (Downtime)", value: "dtp" }
-      ));
+      .setName("gt")
+      .setDescription("GT (Golden Tickets) to spend")
+      .setMinValue(0)
+  )
+  .addNumberOption((opt) =>
+    opt
+      .setName("dtp")
+      .setDescription("DTP (Downtime Points) to spend")
+      .setMinValue(0)
+  )
+  .addNumberOption((opt) =>
+    opt
+      .setName("cc")
+      .setDescription("CC (Crew Coins) to spend")
+      .setMinValue(0)
+  );
 
 export async function execute(ix: ChatInputCommandInteraction) {
-// Channel guard: only allowed in Resource or Magic Items channel (or test override)
+  // Channel guard: only allowed in Resource or Magic Items channel (or test override)
   const isInAllowedChannel = ix.channelId === RESOURCE_CHANNEL_ID || ix.channelId === MAGIC_ITEMS_CHANNEL_ID || ix.channelId === DTP_CHANNEL_ID;
   const isInConfiguredGuild = ix.guildId === CONFIG.guild?.id;
 
@@ -63,10 +70,35 @@ export async function execute(ix: ChatInputCommandInteraction) {
   const user = member.user;
 
   const item = ix.options.getString("item", true).trim();
-  const amountGp = ix.options.getNumber("amount", true);
-  let resource = ix.options.getString("type") || "cp";
+  const gpInput = ix.options.getNumber("gp") ?? 0;
+  const gtInput = ix.options.getNumber("gt") ?? 0;
+  const dtpInput = ix.options.getNumber("dtp") ?? 0;
+  const ccInput = ix.options.getNumber("cc") ?? 0;
 
-  if (resource === "dtp"){
+  // Permission check: CC is crew+ only
+  if (ccInput > 0) {
+    const crewRoleId = CFG.roles.member.id;
+    const hasCrew = crewRoleId && member.roles.cache.has(crewRoleId);
+    if (!hasCrew) {
+      await ix.reply({
+        flags: MessageFlags.Ephemeral,
+        content: t('buy.errors.ccCrewOnly'),
+      });
+      return;
+    }
+  }
+
+  // Validation: at least one resource must be specified
+  if (gpInput === 0 && gtInput === 0 && dtpInput === 0 && ccInput === 0) {
+    await ix.reply({
+      flags: MessageFlags.Ephemeral,
+      content: t('buy.errors.noResourceSpecified'),
+    });
+    return;
+  }
+
+  // Update DTP if needed
+  if (dtpInput > 0) {
     if (await updateDTP(user.id) == null) {
       return ix.reply({
         flags: MessageFlags.Ephemeral,
@@ -76,35 +108,105 @@ export async function execute(ix: ChatInputCommandInteraction) {
   }
   
   const row = await getPlayer(user.id);
-  if (row) {
-    let amount = 0;
-    if (resource === "cp") { amount = toCp(amountGp) }
-    else { amount = amountGp }
-    const updated = await adjustResource(user.id, [resource], [amount * -1])
-    if (updated) {
-      let newValue = "0";
-      if (resource === "tp") { 
-        newValue = updated.tp.toFixed();
-      }
-      else if (resource === "cp") {
-        newValue = toGp(updated.cp);
-      }
-      else if (resource === "dtp") {
-        newValue = updated.dtp.toFixed();
-      }
-      await ix.reply({
-        content: t('buy.purchaseSuccessResource', { 
-          item, 
-          amount: amountGp, 
-          newValue, 
-          name: updated.name ?? "", 
-          resource: resourceMapping[resource]?.[0] ?? '', 
-          icon: resourceMapping[resource]?.[1] ?? '' 
-        }),
-      });
-      return;
+  if (!row) {
+    await ix.reply({
+      flags: MessageFlags.Ephemeral,
+      content: t('buy.errors.noPlayerRecord', { user: user.username }),
+    });
+    return;
+  }
+
+  // Validate sufficient funds for all requested resources
+  const insufficientResources: string[] = [];
+  
+  if (gpInput > 0 && row.cp < toCp(gpInput)) {
+    insufficientResources.push("💰 GP");
+  }
+  if (gtInput > 0 && row.tp < gtInput) {
+    insufficientResources.push("🎫 GT");
+  }
+  if (dtpInput > 0 && row.dtp < dtpInput) {
+    insufficientResources.push("🔨 DTP");
+  }
+  if (ccInput > 0) {
+    const playerCC = await getPlayerCC(user.id);
+    if (playerCC < ccInput) {
+      insufficientResources.push("🪙 CC");
     }
   }
+
+  if (insufficientResources.length > 0) {
+    const resourceList = insufficientResources.join(", ");
+    await ix.reply({
+      flags: MessageFlags.Ephemeral,
+      content: t('buy.errors.noFunds', { resources: resourceList }),
+    });
+    return;
+  }
+
+  // Build resource adjustment arrays
+  const columns: string[] = [];
+  const values: number[] = [];
+  
+  if (gpInput > 0) {
+    columns.push("cp");
+    values.push(toCp(gpInput) * -1);
+  }
+  if (gtInput > 0) {
+    columns.push("tp");
+    values.push(gtInput * -1);
+  }
+  if (dtpInput > 0) {
+    columns.push("dtp");
+    values.push(dtpInput * -1);
+  }
+  if (ccInput > 0) {
+    columns.push("cc");
+    values.push(ccInput * -1);
+  }
+
+  const updated = await adjustResource(user.id, columns, values);
+  if (!updated) {
+    await ix.reply({
+      flags: MessageFlags.Ephemeral,
+      content: t('errors.generic'),
+    });
+    return;
+  }
+
+  // Build cost and balance strings for response
+  const costParts: string[] = [];
+  const balanceParts: string[] = [];
+  
+  if (gpInput > 0) {
+    costParts.push(`💰 **${gpInput} GP**`);
+    balanceParts.push(`💰 **${toGp(updated.cp)} GP**`);
+  }
+  if (gtInput > 0) {
+    costParts.push(`🎫 **${gtInput} GT**`);
+    balanceParts.push(`🎫 **${updated.tp} GT**`);
+  }
+  if (dtpInput > 0) {
+    costParts.push(`🔨 **${dtpInput} DTP**`);
+    balanceParts.push(`🔨 **${updated.dtp} DTP**`);
+  }
+  if (ccInput > 0) {
+    const playerCC = await getPlayerCC(user.id);
+    costParts.push(`🪙 **${ccInput} CC**`);
+    balanceParts.push(`🪙 **${playerCC} CC**`);
+  }
+
+  const costStr = costParts.join(", ");
+  const balanceStr = balanceParts.join(" · ");
+
+  await ix.reply({
+    content: t('buy.purchaseSuccessMulti', { 
+      item, 
+      cost: costStr, 
+      balance: balanceStr,
+      name: updated.name ?? ""
+    }),
+  });
 }
 
 export default { data, execute };

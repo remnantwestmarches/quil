@@ -106,6 +106,23 @@ export async function handleModal(interaction: ModalSubmitInteraction) {
   if (!activeCharLeft) {
     const anyCharLeft = await db.get(`SELECT * FROM charlog WHERE userId = ?`, targetId);
     if (anyCharLeft) {
+      // Transfer cc from retired character to next active character
+      if (row.cc !== 0) {
+        await db.run(
+          `UPDATE charlog 
+           SET cc = cc + ?
+           WHERE rowid = (
+             SELECT rowid
+             FROM charlog
+             WHERE userId = ?
+             ORDER BY rowid ASC
+             LIMIT 1
+           )`,
+          row.cc,
+          targetId
+        );
+      }
+      
       await db.run(`UPDATE charlog
                     SET active = 1
                     WHERE rowid = (
@@ -119,6 +136,16 @@ export async function handleModal(interaction: ModalSubmitInteraction) {
     else {
       lastChar = true
     }
+  }
+  // If there's an active character left (not the one being retired), transfer cc
+  else if (row.cc !== 0) {
+    await db.run(
+      `UPDATE charlog 
+       SET cc = cc + ?
+       WHERE userId = ? AND active = 1`,
+      row.cc,
+      targetId
+    );
   }
   // Optional role cleanup
   if (lastChar) {

@@ -463,9 +463,24 @@ async function handlePurge(ix: ChatInputCommandInteraction) {
   for (const uid of removedIds) {
     try {
       const m = await ix.guild!.members.fetch(uid);
-      // remove base + all tier roles
-      await removeRoleById(m, LFG_BASE_ROLE_ID);
-      for (const t of LFG_ORDER) await removeRoleById(m, LFG_TIER_ROLE_IDS[t]);
+      if (scope === "pbp") {
+        // Only remove PBP tier role
+        await removeRoleById(m, LFG_TIER_ROLE_IDS.pbp);
+      } else {
+        // Remove low, mid, high, epic (but NOT pbp)
+        await removeRoleById(m, LFG_TIER_ROLE_IDS.low);
+        await removeRoleById(m, LFG_TIER_ROLE_IDS.mid);
+        await removeRoleById(m, LFG_TIER_ROLE_IDS.high);
+        await removeRoleById(m, LFG_TIER_ROLE_IDS.epic);
+      }
+      // Check if user still has any tier roles, remove base LFG if none
+      const stillHasTier = LFG_ORDER.some(t => {
+        const rid = LFG_TIER_ROLE_IDS[t];
+        return rid && m.roles.cache.has(rid);
+      });
+      if (!stillHasTier) {
+        await removeRoleById(m, LFG_BASE_ROLE_ID);
+      }
     } catch {
       // ignore
     }

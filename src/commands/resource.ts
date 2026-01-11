@@ -11,7 +11,7 @@ import {
 import { CONFIG } from "../config/resolved.js";
 import { t } from "../lib/i18n.js";
 import { validateCommandPermissions } from "../config/validaters.js";
-import { adjustResource, getPlayer } from "../utils/db_queries.js";
+import { adjustResource, getPlayer, getPlayerCC } from "../utils/db_queries.js";
 import { updateDTP } from "../domain/resource.js";
 import { showCharacterEmbed } from "../utils/embeds.js";
 import { announceLevelChange, bandFor, levelForXP, proficiencyFor } from "../domain/xp.js";
@@ -28,7 +28,7 @@ const DTP_CHANNEL_ID = CFG.channels?.dtpTracking || null;
 const RESOURCE_CHANNEL_ID = CFG.channels?.resourceTracking || null;
 const toCp = (gp: number) => Math.round(gp * 100);
 const toGp = (cp: number) => (cp / 100).toFixed(2);
-const resourceMapping: { [id: string]: [string, string]; } = {"cp":["GP","💰"], "tp":["GT","🎫"], "dtp":["DTP","🔨"], "xp":["XP","💪"]}
+const resourceMapping: { [id: string]: [string, string]; } = {"cp":["GP","💰"], "tp":["GT","🎫"], "dtp":["DTP","🔨"], "cc":["CC","🪙"], "xp":["XP","💪"]}
 
 function addSharedOptions(
     sub: SlashCommandSubcommandBuilder
@@ -42,7 +42,8 @@ function addSharedOptions(
             { name: "GP (Gold Pieces)", value: "cp" },
             { name: "XP (Experience Points)", value: "xp" },
             { name: "GT (Golden Tickets)", value: "tp" },
-            { name: "DTP (Downtime Points)", value: "dtp" }))
+            { name: "DTP (Downtime Points)", value: "dtp" },
+            { name: "CC (Crew Coins)", value: "cc" }))
       .addUserOption((o) => o
         .setName("user")
         .setDescription("Target")
@@ -143,8 +144,8 @@ export async function execute(ix: ChatInputCommandInteraction) {
   let res = row.cp
   if (resource === "tp") { res = row.tp }
   else if (resource === "dtp") { res = row.dtp }
-  else if (resource === "tp") { res = row.tp }
   else if (resource === "xp") { res = row.xp }
+  else if (resource === "cc") { res = await getPlayerCC(user.id) }
 
   if (sub === "show") {
     let fields: APIEmbedField[] = []
@@ -183,7 +184,6 @@ export async function execute(ix: ChatInputCommandInteraction) {
     let resNew = next.cp
     if (resource === "tp") { resNew = next.tp }
     else if (resource === "dtp") { resNew = next.dtp }
-    else if (resource === "tp") { resNew = next.tp }
     else if (resource === "xp") { 
       resNew = next.xp
       const levelNew = levelForXP(next.xp);
@@ -194,6 +194,7 @@ export async function execute(ix: ChatInputCommandInteraction) {
       }
       //level up stuff
     }
+    else if (resource === "cc") { resNew = await getPlayerCC(user.id) }
     showCharacterEmbed(ix, {
       title: `${next.name} — Resource Adjusted`,
       fields: [

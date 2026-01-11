@@ -132,6 +132,12 @@ export async function migrateDb(dbFile = DEFAULT_DB) {
       PRIMARY KEY (title)
     );
   `);}
+  // add COLUMN cc to charlog
+  const migrate_check5 = await db.get(`SELECT * FROM pragma_table_info('charlog') WHERE name = 'cc';`);
+  if (!migrate_check5) {await db.exec(`
+    ALTER TABLE charlog
+    ADD COLUMN cc INTEGER NOT NULL DEFAULT 0;
+  `);}
 
   console.log(`📂 Database migrations done: ${dbFile}`);
   return db;

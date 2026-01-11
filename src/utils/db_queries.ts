@@ -10,6 +10,7 @@ export type PlayerRow = {
   tp: number;
   dtp: number;
   dtp_updated: number;
+  cc: number;
   active: boolean;
 };
 
@@ -29,7 +30,7 @@ export async function getPlayer(userId: string, name?: string,): Promise<PlayerR
 
   // Base query
   let query = `
-    SELECT userId, name, xp, level, cp, tp, dtp, dtp_updated, active
+    SELECT userId, name, xp, level, cp, tp, dtp, dtp_updated, cc, active
     FROM charlog
     WHERE userId = ?
   `;
@@ -47,10 +48,19 @@ export async function getPlayer(userId: string, name?: string,): Promise<PlayerR
   return row;
 }
 
+export async function getPlayerCC(userId: string): Promise<number> {
+  const db = getDb();
+  const result = await db.get<{ total: number }>(
+    `SELECT COALESCE(SUM(cc), 0) as total FROM charlog WHERE userId = ?`,
+    userId
+  );
+  return result?.total ?? 0;
+}
+
 export async function adjustResource(userId: string, columns: string[], values: number[], set: boolean = false, name: string = "") {
   const db = getDb();
   
-  const allowed = ["xp", "level", "cp", "tp", "dtp", "dtp_updated"];
+  const allowed = ["xp", "level", "cp", "tp", "dtp", "dtp_updated", "cc"];
 
   for (const col of columns) {
     if (!allowed.includes(col)) {

@@ -27,7 +27,10 @@
     "db:wipe": "tsx src/scripts/wipe.ts",
     "db:seed:me": "tsx src/scripts/seed.me.ts",
     "db:reseed:me": "npm run db:wipe && npm run db:seed:me",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [
     "discord",
@@ -57,11 +60,13 @@
   "devDependencies": {
     "@eslint/js": "^9.36.0",
     "@types/node": "^24.5.2",
+    "@vitest/ui": "^4.0.16",
     "eslint": "^9.36.0",
     "globals": "^16.4.0",
     "jiti": "^2.6.0",
     "tsx": "^4.20.6",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.44.1"
+    "typescript-eslint": "^8.44.1",
+    "vitest": "^4.0.16"
   }
 }

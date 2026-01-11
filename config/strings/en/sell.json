@@ -28,7 +28,7 @@
     ]
   },
   "transactionSuccess": [
-    "Sale complete. **{item}** fetched **{amount} GP** |  Remeaining GP: **{newGp}**.",
+    "Sale complete. **{item}** fetched **{amount} GP** |  Remaining GP: **{newGp}**.",
     "Logged: **{item}** sold for **{amount} GP** | Current GP: **{newGp}**.",
     "Ledger updated — **{item}** sold (**{amount} GP**) | Updated GP: **{newGp}**."
   ],
